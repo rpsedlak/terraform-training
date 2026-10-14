@@ -7,39 +7,23 @@
 ## Specification
 
 - [ ] Decide and approve the CI platform and protected approval mechanism.
-- [ ] Decide and approve the Terraform version and Azure resource/root module scope.
-- [ ] Choose the gateway type and allocate non-overlapping CIDR ranges for the VNet, GatewaySubnet, and AzureBastionSubnet; verify subnet sizes against Azure requirements.
-- [ ] Decide and approve the state backend, locking, and execution identity.
-- [ ] Define safe plan review, artifact access, and retention expectations.
+- [ ] Decide how plans will be reviewed, access-controlled, and retained.
+- [ ] Decide the secure identity mechanism and least-privilege permissions for approved applies.
 
 ## Implementation
 
-- [ ] Add the minimal Terraform root module and ignore rules required by the approved scope.
-- [ ] Implement the single-VNet and subnet topology defined in ADR-003.
-- [ ] Deploy Azure Bastion into `AzureBastionSubnet` as defined in ADR-004.
-- [ ] Create exactly one VM in the servers subnet as defined in ADR-005.
-- [ ] Configure `Standard_B2s_v2` as the default VM size and expose a Terraform variable override constrained by ADR-006.
-- [ ] Configure the VM's attached disk as Premium managed storage as defined in ADR-007.
-- [ ] Ensure the server VM has no public IP attached as defined in ADR-008.
-- [ ] Include the environment code from ADR-009 in resource names wherever Azure naming rules permit.
-- [ ] Add CI checks for formatting and Terraform validation.
-- [ ] Add plan generation and review behavior for proposed changes.
-- [ ] Add an explicitly approved apply path using the selected secure identity mechanism.
+- [ ] Add CI checks for formatting and validation of the Terraform root module in feature 002.
+- [ ] Add plan generation for proposed changes without exposing sensitive output to untrusted jobs.
+- [ ] Add a protected approval gate before the apply job.
+- [ ] Configure secure deployment identity and least-privilege permissions.
 
 ## Verification
 
-- [ ] Demonstrate formatting check failure for a formatting violation.
+- [ ] Demonstrate formatting check failure for a formatting violation in feature 002's Terraform root module.
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
-- [ ] Verify the Terraform plan deploys Azure Bastion into `AzureBastionSubnet`.
-- [ ] Verify the Terraform plan creates exactly one VM attached to the servers subnet.
-- [ ] Verify the default VM size is `Standard_B2s_v2` when no override is supplied.
-- [ ] Verify a valid B-series override with at least two cores is accepted and an invalid override is rejected.
-- [ ] Verify the Terraform plan configures the VM's attached disk with Premium managed storage.
-- [ ] Verify the Terraform plan does not attach a public IP to the server VM's network interface.
-- [ ] Verify resource names use the configured environment code where Azure naming rules permit.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
+- [ ] Verify untrusted changes cannot access deployment credentials or sensitive plan output.
 - [ ] Verify apply is blocked until the protected approval is granted.
-- [ ] Confirm secrets, state, and sensitive plan output are not committed or exposed to untrusted jobs.
 - [ ] Confirm all acceptance criteria in `spec.md` and record evidence.
 
 ## Completion notes

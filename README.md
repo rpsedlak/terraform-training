@@ -30,6 +30,10 @@ specs/
 		spec.md
 		plan.md
 		tasks.md
+	002-azure-environment/
+		spec.md
+		plan.md
+		tasks.md
 ```
 
-The first example feature targets Microsoft Azure. Its implementation is intentionally not included: use its spec to make and record the platform and execution decisions before adding pipeline code.
+The Azure environment requirements are specified in `specs/002-azure-environment/` and traced to accepted decision records. Infrastructure and pipeline implementation remain out of scope until their specifications are approved.

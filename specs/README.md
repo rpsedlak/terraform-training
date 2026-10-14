@@ -15,4 +15,5 @@ Copy the three files from `templates/` when creating a feature. Keep all three i
 
 | Feature | Status | Purpose |
 | --- | --- | --- |
-| [001 Terraform CI Pipeline](001-terraform-ci-pipeline/spec.md) | Draft | Define a safe CI workflow for Terraform deployments to Azure. |
+| [001 Terraform CI Pipeline](001-terraform-ci-pipeline/spec.md) | Draft | Define a safe CI workflow for the approved Azure environment. |
+| [002 Azure Environment](002-azure-environment/spec.md) | Draft | Specify the Azure resources and naming requirements from ADR-001 through ADR-009. |

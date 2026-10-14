@@ -6,41 +6,33 @@
 
 ## Technical approach
 
-Keep the pipeline definition separate from Terraform configuration. Target Microsoft Azure as recorded in [ADR-001](decisions/ADR-001-azure-deployment.md), provision the environment using Terraform as recorded in [ADR-002](decisions/ADR-002-terraform-deployment.md), follow the network topology in [ADR-003](decisions/ADR-003-azure-network-topology.md), deploy Azure Bastion as recorded in [ADR-004](decisions/ADR-004-azure-bastion.md), and create one VM in the servers subnet as recorded in [ADR-005](decisions/ADR-005-single-server-vm.md) with a B-series size constraint from [ADR-006](decisions/ADR-006-b-series-vm-size.md). Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected CI platform's protected approval mechanism. Do not implement the pipeline until the open CI platform, CIDR allocation, remaining Azure resource scope, Terraform version, backend, and identity decisions in the spec are resolved.
+Keep pipeline configuration separate from infrastructure configuration. Run formatting and validation against the root module defined in [002 Azure Environment](../002-azure-environment/spec.md), generate a reviewable plan for proposed changes, and place apply behind the selected CI platform's protected approval mechanism. Do not expose deployment credentials or sensitive plan output to untrusted changes.
 
 ## Decisions
 
 | Decision | Choice | Rationale |
 | --- | --- | --- |
-| CI platform | Unresolved | Determines pipeline syntax and approval controls. |
-| Deployment target | Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)) | The training system will be deployed to Azure. |
-| Infrastructure as code | Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)) | The environment will be provisioned using Terraform. |
-| Network topology | One /22 VNet, Standard SKU virtual network gateway and Bastion subnets, and a /24 servers subnet ([ADR-003](decisions/ADR-003-azure-network-topology.md)) | Provides the required network segmentation. |
-| Bastion service | Deploy Azure Bastion into `AzureBastionSubnet` ([ADR-004](decisions/ADR-004-azure-bastion.md)) | Provides the selected Bastion service in the environment. |
-| Server compute and storage | Exactly one VM in the servers subnet; default size `Standard_B2s_v2`, overrideable by a Terraform variable constrained to B-series SKUs with at least two cores; attached disk uses Premium managed storage ([ADR-005](decisions/ADR-005-single-server-vm.md), [ADR-006](decisions/ADR-006-b-series-vm-size.md), [ADR-007](decisions/ADR-007-premium-managed-disk.md)) | Defines the initial server footprint, minimum compute size, and disk tier. |
-| Server public IP | No public IP attached to the server VM ([ADR-008](decisions/ADR-008-no-server-public-ip.md)) | Keeps the server VM off direct public IP access. |
-| Environment naming | Use `d` for development, `t` for testing, and `p` for production in resource names ([ADR-009](decisions/ADR-009-environment-naming-codes.md)) | Distinguishes resources by deployment environment. |
-| Terraform version | Unresolved | Must be pinned consistently in local and CI workflows. |
-| Azure resource scope and root module | Unresolved | Determines the Terraform configuration and validation prerequisites. |
-| State backend and locking | Unresolved | State must be shared and protected for team workflows. |
-| Execution identity | Unresolved | Must support least privilege and avoid long-lived repository secrets. |
+| CI platform | Unresolved | Determines pipeline syntax, triggers, and approval controls. |
+| Protected apply approval | Unresolved | Must prevent apply from running on unreviewed changes. |
+| Plan output handling | Unresolved | Determines secure reviewer access and retention. |
+| Deployment identity | Unresolved | Must use least privilege and avoid long-lived repository secrets. |
+| Environment configuration | Follow [002 Azure Environment](../002-azure-environment/plan.md) | Keeps the pipeline aligned with the independently specified infrastructure. |
 
 ## Security and operations
 
 - Credentials and permissions: use the selected CI platform's secure identity mechanism; never commit credentials.
-- State and locking: select a remote backend with locking before enabling shared applies.
-- Deployment approvals and rollback: require a protected, explicit approval before apply; define recovery expectations for the selected Azure services.
-- Cost and cleanup: no real infrastructure is created until the Azure resource scope, budget expectations, and cleanup path are documented.
+- Credentials and permissions: expose credentials only to trusted apply jobs and use the selected platform's secure identity mechanism.
+- Plan artifacts: restrict access and retention because Terraform plans may contain sensitive values.
+- Apply: require a protected, explicit approval before any apply job runs.
 
 ## Validation
 
-- Run the chosen Terraform formatter in check mode and verify it rejects an intentionally unformatted fixture.
-- Run `terraform validate` against the configured root module and verify invalid configuration fails.
-- Inspect the proposed-change workflow to confirm plan review precedes any apply job.
-- Confirm repository and CI configuration do not expose secrets or publish sensitive plan data to untrusted users.
+- Verify formatting and validation checks execute against the root module in feature 002.
+- Verify a proposed change generates a reviewable plan without applying it.
+- Verify untrusted changes cannot access credentials or sensitive plan output.
+- Verify apply remains blocked until the protected approval is granted.
 
 ## Risks
 
 - Publishing plan output can expose sensitive values; restrict access and retention, or use a sanitized review method.
 - Untrusted pull-request code can attempt to exfiltrate credentials; do not expose deployment credentials to untrusted jobs.
-- A local-only state workflow does not support safe concurrent team applies; choose remote state and locking before enabling apply.
