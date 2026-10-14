@@ -16,6 +16,7 @@
 
 - [ ] Add the minimal Terraform root module and ignore rules required by the approved scope.
 - [ ] Implement the single-VNet and subnet topology defined in ADR-003.
+- [ ] Deploy Azure Bastion into `AzureBastionSubnet` as defined in ADR-004.
 - [ ] Add CI checks for formatting and Terraform validation.
 - [ ] Add plan generation and review behavior for proposed changes.
 - [ ] Add an explicitly approved apply path using the selected secure identity mechanism.
@@ -24,6 +25,7 @@
 
 - [ ] Demonstrate formatting check failure for a formatting violation.
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
+- [ ] Verify the Terraform plan deploys Azure Bastion into `AzureBastionSubnet`.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
 - [ ] Verify apply is blocked until the protected approval is granted.
 - [ ] Confirm secrets, state, and sensitive plan output are not committed or exposed to untrusted jobs.
