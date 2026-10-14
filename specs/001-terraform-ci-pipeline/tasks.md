@@ -8,12 +8,14 @@
 
 - [ ] Decide and approve the CI platform and protected approval mechanism.
 - [ ] Decide and approve the Terraform version and Azure resource/root module scope.
+- [ ] Choose the gateway type and allocate non-overlapping CIDR ranges for the VNet, GatewaySubnet, and AzureBastionSubnet; verify subnet sizes against Azure requirements.
 - [ ] Decide and approve the state backend, locking, and execution identity.
 - [ ] Define safe plan review, artifact access, and retention expectations.
 
 ## Implementation
 
 - [ ] Add the minimal Terraform root module and ignore rules required by the approved scope.
+- [ ] Implement the single-VNet and subnet topology defined in ADR-003.
 - [ ] Add CI checks for formatting and Terraform validation.
 - [ ] Add plan generation and review behavior for proposed changes.
 - [ ] Add an explicitly approved apply path using the selected secure identity mechanism.

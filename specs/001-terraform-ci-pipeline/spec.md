@@ -16,7 +16,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 ## Non-goals
 
-- Selecting specific Azure services before the infrastructure scope is defined.
+- Selecting Azure resources beyond the network topology recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md).
 - Applying infrastructure automatically from an unreviewed change.
 - Storing cloud credentials or Terraform state in the repository.
 
@@ -44,7 +44,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 ## Constraints and assumptions
 
-- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The Azure services and root module scope, CI provider, Terraform version, state backend, and execution identity are undecided.
+- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The single-VNet topology and server subnet size are recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md); CIDR allocations for the VNet, gateway, and Bastion subnets remain open. The remaining Azure resource scope, CI provider, Terraform version, state backend, and execution identity are undecided.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
 - Terraform commands and configuration details will be selected after the platform, resource scope, and version decisions are approved.
 
@@ -52,5 +52,6 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 - [ ] Which CI platform should this training example use, and who owns the approval gate?
 - [ ] Which Terraform version and Azure resource scope should the example target?
+- [ ] Which gateway type (VPN or ExpressRoute) and non-overlapping CIDR ranges should be used for the /22 VNet, GatewaySubnet, and AzureBastionSubnet?
 - [ ] Which remote state backend, locking mechanism, and identity model should be demonstrated?
 - [ ] Should plan output be published as a CI artifact, and what retention and access controls are required?

@@ -6,7 +6,7 @@
 
 ## Technical approach
 
-Keep the pipeline definition separate from Terraform configuration. Target Microsoft Azure as recorded in [ADR-001](decisions/ADR-001-azure-deployment.md), and provision the environment using Terraform as recorded in [ADR-002](decisions/ADR-002-terraform-deployment.md). Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected CI platform's protected approval mechanism. Do not implement the pipeline until the open CI platform, Azure resource scope, Terraform version, backend, and identity decisions in the spec are resolved.
+Keep the pipeline definition separate from Terraform configuration. Target Microsoft Azure as recorded in [ADR-001](decisions/ADR-001-azure-deployment.md), provision the environment using Terraform as recorded in [ADR-002](decisions/ADR-002-terraform-deployment.md), and follow the network topology in [ADR-003](decisions/ADR-003-azure-network-topology.md). Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected CI platform's protected approval mechanism. Do not implement the pipeline until the open CI platform, CIDR allocation, remaining Azure resource scope, Terraform version, backend, and identity decisions in the spec are resolved.
 
 ## Decisions
 
@@ -15,6 +15,7 @@ Keep the pipeline definition separate from Terraform configuration. Target Micro
 | CI platform | Unresolved | Determines pipeline syntax and approval controls. |
 | Deployment target | Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)) | The training system will be deployed to Azure. |
 | Infrastructure as code | Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)) | The environment will be provisioned using Terraform. |
+| Network topology | One /22 VNet, Standard SKU virtual network gateway and Bastion subnets, and a /24 servers subnet ([ADR-003](decisions/ADR-003-azure-network-topology.md)) | Provides the required network segmentation. |
 | Terraform version | Unresolved | Must be pinned consistently in local and CI workflows. |
 | Azure resource scope and root module | Unresolved | Determines the Terraform configuration and validation prerequisites. |
 | State backend and locking | Unresolved | State must be shared and protected for team workflows. |
