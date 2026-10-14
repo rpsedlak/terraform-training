@@ -18,6 +18,7 @@
 - [ ] Implement the single-VNet and subnet topology defined in ADR-003.
 - [ ] Deploy Azure Bastion into `AzureBastionSubnet` as defined in ADR-004.
 - [ ] Create exactly one VM in the servers subnet as defined in ADR-005.
+- [ ] Configure `Standard_B2s_v2` as the default VM size and expose a Terraform variable override constrained by ADR-006.
 - [ ] Add CI checks for formatting and Terraform validation.
 - [ ] Add plan generation and review behavior for proposed changes.
 - [ ] Add an explicitly approved apply path using the selected secure identity mechanism.
@@ -28,6 +29,8 @@
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
 - [ ] Verify the Terraform plan deploys Azure Bastion into `AzureBastionSubnet`.
 - [ ] Verify the Terraform plan creates exactly one VM attached to the servers subnet.
+- [ ] Verify the default VM size is `Standard_B2s_v2` when no override is supplied.
+- [ ] Verify a valid B-series override with at least two cores is accepted and an invalid override is rejected.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
 - [ ] Verify apply is blocked until the protected approval is granted.
 - [ ] Confirm secrets, state, and sensitive plan output are not committed or exposed to untrusted jobs.

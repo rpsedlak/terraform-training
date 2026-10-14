@@ -6,7 +6,7 @@
 
 ## Technical approach
 
-Keep the pipeline definition separate from Terraform configuration. Target Microsoft Azure as recorded in [ADR-001](decisions/ADR-001-azure-deployment.md), provision the environment using Terraform as recorded in [ADR-002](decisions/ADR-002-terraform-deployment.md), follow the network topology in [ADR-003](decisions/ADR-003-azure-network-topology.md), deploy Azure Bastion as recorded in [ADR-004](decisions/ADR-004-azure-bastion.md), and create one VM in the servers subnet as recorded in [ADR-005](decisions/ADR-005-single-server-vm.md). Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected CI platform's protected approval mechanism. Do not implement the pipeline until the open CI platform, CIDR allocation, remaining Azure resource scope, Terraform version, backend, and identity decisions in the spec are resolved.
+Keep the pipeline definition separate from Terraform configuration. Target Microsoft Azure as recorded in [ADR-001](decisions/ADR-001-azure-deployment.md), provision the environment using Terraform as recorded in [ADR-002](decisions/ADR-002-terraform-deployment.md), follow the network topology in [ADR-003](decisions/ADR-003-azure-network-topology.md), deploy Azure Bastion as recorded in [ADR-004](decisions/ADR-004-azure-bastion.md), and create one VM in the servers subnet as recorded in [ADR-005](decisions/ADR-005-single-server-vm.md) with a B-series size constraint from [ADR-006](decisions/ADR-006-b-series-vm-size.md). Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected CI platform's protected approval mechanism. Do not implement the pipeline until the open CI platform, CIDR allocation, remaining Azure resource scope, Terraform version, backend, and identity decisions in the spec are resolved.
 
 ## Decisions
 
@@ -17,7 +17,7 @@ Keep the pipeline definition separate from Terraform configuration. Target Micro
 | Infrastructure as code | Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)) | The environment will be provisioned using Terraform. |
 | Network topology | One /22 VNet, Standard SKU virtual network gateway and Bastion subnets, and a /24 servers subnet ([ADR-003](decisions/ADR-003-azure-network-topology.md)) | Provides the required network segmentation. |
 | Bastion service | Deploy Azure Bastion into `AzureBastionSubnet` ([ADR-004](decisions/ADR-004-azure-bastion.md)) | Provides the selected Bastion service in the environment. |
-| Server compute | Exactly one VM in the servers subnet ([ADR-005](decisions/ADR-005-single-server-vm.md)) | Defines the initial server footprint. |
+| Server compute | Exactly one VM in the servers subnet; default size `Standard_B2s_v2`, overrideable by a Terraform variable constrained to B-series SKUs with at least two cores ([ADR-005](decisions/ADR-005-single-server-vm.md), [ADR-006](decisions/ADR-006-b-series-vm-size.md)) | Defines the initial server footprint and configurable minimum compute size. |
 | Terraform version | Unresolved | Must be pinned consistently in local and CI workflows. |
 | Azure resource scope and root module | Unresolved | Determines the Terraform configuration and validation prerequisites. |
 | State backend and locking | Unresolved | State must be shared and protected for team workflows. |

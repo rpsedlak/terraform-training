@@ -31,6 +31,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - The pipeline checks formatting and runs Terraform validation for the configured Terraform root module.
 - The environment deploys Azure Bastion into the `AzureBastionSubnet` defined by [ADR-003](decisions/ADR-003-azure-network-topology.md), as decided in [ADR-004](decisions/ADR-004-azure-bastion.md).
 - The environment creates one virtual machine in the servers subnet, as decided in [ADR-005](decisions/ADR-005-single-server-vm.md).
+- The VM defaults to `Standard_B2s_v2`; a Terraform input variable can override the size with a B-series SKU of at least two cores, as decided in [ADR-006](decisions/ADR-006-b-series-vm-size.md).
 - A plan is generated for review on proposed changes, subject to the selected CI platform's security constraints.
 - Applying a plan requires an explicit approval gate and is not triggered by an unreviewed change.
 - Provider credentials and backend configuration are supplied through an approved secure mechanism, not committed to source control.
@@ -42,13 +43,15 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - [ ] Invalid Terraform configuration causes validation to fail.
 - [ ] The Terraform plan deploys Azure Bastion into the designated `AzureBastionSubnet`.
 - [ ] The Terraform plan creates exactly one virtual machine in the servers subnet.
+- [ ] Without an override, the VM size is `Standard_B2s_v2`.
+- [ ] A VM size override is accepted only when it is a B-series SKU with at least two cores.
 - [ ] A proposed change produces a plan that can be reviewed before apply.
 - [ ] An apply cannot run without the agreed approval gate.
 - [ ] No credentials, state files, or generated plan artifacts containing sensitive data are committed to the repository.
 
 ## Constraints and assumptions
 
-- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The single-VNet topology and server subnet size are recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md); Azure Bastion deployment is recorded in [ADR-004](decisions/ADR-004-azure-bastion.md); and one VM in the servers subnet is recorded in [ADR-005](decisions/ADR-005-single-server-vm.md). CIDR allocations for the VNet and gateway and Bastion subnets remain open. VM image, size, and operating system, other Azure resource scope, CI provider, Terraform version, state backend, and execution identity are undecided.
+- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The single-VNet topology and server subnet size are recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md); Azure Bastion deployment is recorded in [ADR-004](decisions/ADR-004-azure-bastion.md); one VM in the servers subnet is recorded in [ADR-005](decisions/ADR-005-single-server-vm.md); and its default size and override constraints are recorded in [ADR-006](decisions/ADR-006-b-series-vm-size.md). CIDR allocations for the VNet and gateway and Bastion subnets remain open. VM image, operating system, other Azure resource scope, CI provider, Terraform version, state backend, and execution identity are undecided.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
 - Terraform commands and configuration details will be selected after the platform, resource scope, and version decisions are approved.
 
