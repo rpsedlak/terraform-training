@@ -1,0 +1,18 @@
+# ADR-005: Create One VM in the Servers Subnet
+
+**Status:** Accepted  
+**Date:** 2026-10-14
+
+## Context
+
+The Azure network design in [ADR-003](ADR-003-azure-network-topology.md) includes a dedicated servers subnet. The environment needs an initial compute footprint for the training deployment.
+
+## Decision
+
+Create exactly one virtual machine in the servers subnet of the virtual network.
+
+## Consequences
+
+- Terraform configuration will create one VM and attach its network interface to the servers subnet.
+- The VM operating system/image, size, disk configuration, and access method remain to be decided before implementation.
+- The VM must not be placed in `AzureBastionSubnet` or `GatewaySubnet`.
