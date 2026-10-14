@@ -15,4 +15,4 @@ Copy the three files from `templates/` when creating a feature. Keep all three i
 
 | Feature | Status | Purpose |
 | --- | --- | --- |
-| [001 Terraform CI Pipeline](001-terraform-ci-pipeline/spec.md) | Draft | Define a safe, provider-agnostic CI workflow for Terraform changes. |
+| [001 Terraform CI Pipeline](001-terraform-ci-pipeline/spec.md) | Draft | Define a safe CI workflow for Terraform deployments to Azure. |

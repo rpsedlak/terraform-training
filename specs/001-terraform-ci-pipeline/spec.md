@@ -6,17 +6,17 @@
 
 ## Problem
 
-Terraform changes need repeatable checks before they can be reviewed or deployed. This training project needs a defined, safe pipeline workflow without assuming a specific CI vendor or cloud provider.
+Terraform changes need repeatable checks before they can be reviewed or deployed. This training project needs a defined, safe pipeline workflow for deploying to Microsoft Azure without assuming a specific CI vendor.
 
 ## Goals
 
 - Validate Terraform changes automatically before deployment.
 - Make plan output reviewable and prevent unapproved infrastructure changes from being applied.
-- Document the pipeline decisions so the example can be adapted to a chosen platform.
+- Document the pipeline decisions so the example can be adapted to a chosen CI platform.
 
 ## Non-goals
 
-- Choosing or provisioning a cloud provider.
+- Selecting specific Azure services before the infrastructure scope is defined.
 - Applying infrastructure automatically from an unreviewed change.
 - Storing cloud credentials or Terraform state in the repository.
 
@@ -44,13 +44,13 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 ## Constraints and assumptions
 
-- The CI provider, Terraform version, cloud provider, state backend, and execution identity are undecided.
+- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)). The Azure services and root module scope, CI provider, Terraform version, state backend, and execution identity are undecided.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
 - Terraform commands and configuration will be selected after the platform and provider decisions are approved.
 
 ## Open questions
 
 - [ ] Which CI platform should this training example use, and who owns the approval gate?
-- [ ] Which Terraform version and cloud provider should the example target?
+- [ ] Which Terraform version and Azure resource scope should the example target?
 - [ ] Which remote state backend, locking mechanism, and identity model should be demonstrated?
 - [ ] Should plan output be published as a CI artifact, and what retention and access controls are required?

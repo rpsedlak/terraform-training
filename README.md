@@ -32,4 +32,4 @@ specs/
 		tasks.md
 ```
 
-The first example feature is a provider-agnostic Terraform CI pipeline. Its implementation is intentionally not included: use its spec to make and record the platform and execution decisions before adding pipeline code.
+The first example feature targets Microsoft Azure. Its implementation is intentionally not included: use its spec to make and record the platform and execution decisions before adding pipeline code.

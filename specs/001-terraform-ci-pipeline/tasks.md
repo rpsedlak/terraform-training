@@ -7,7 +7,7 @@
 ## Specification
 
 - [ ] Decide and approve the CI platform and protected approval mechanism.
-- [ ] Decide and approve the Terraform version, cloud provider, and root module scope.
+- [ ] Decide and approve the Terraform version and Azure resource/root module scope.
 - [ ] Decide and approve the state backend, locking, and execution identity.
 - [ ] Define safe plan review, artifact access, and retention expectations.
 

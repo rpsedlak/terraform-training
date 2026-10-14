@@ -6,15 +6,16 @@
 
 ## Technical approach
 
-Keep the pipeline definition separate from Terraform configuration. Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected platform's protected approval mechanism. Do not implement the pipeline until the open platform, provider, version, backend, and identity decisions in the spec are resolved.
+Keep the pipeline definition separate from Terraform configuration. Target Microsoft Azure as recorded in [ADR-001](decisions/ADR-001-azure-deployment.md). Run formatting and validation on proposed changes, then generate a reviewable plan. Place apply behind the selected CI platform's protected approval mechanism. Do not implement the pipeline until the open CI platform, Azure resource scope, Terraform version, backend, and identity decisions in the spec are resolved.
 
 ## Decisions
 
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | CI platform | Unresolved | Determines pipeline syntax and approval controls. |
+| Deployment target | Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)) | The training system will be deployed to Azure. |
 | Terraform version | Unresolved | Must be pinned consistently in local and CI workflows. |
-| Cloud provider and root module | Unresolved | Determines provider configuration and validation prerequisites. |
+| Azure resource scope and root module | Unresolved | Determines the Terraform configuration and validation prerequisites. |
 | State backend and locking | Unresolved | State must be shared and protected for team workflows. |
 | Execution identity | Unresolved | Must support least privilege and avoid long-lived repository secrets. |
 
@@ -22,8 +23,8 @@ Keep the pipeline definition separate from Terraform configuration. Run formatti
 
 - Credentials and permissions: use the selected CI platform's secure identity mechanism; never commit credentials.
 - State and locking: select a remote backend with locking before enabling shared applies.
-- Deployment approvals and rollback: require a protected, explicit approval before apply; define recovery expectations with the provider choice.
-- Cost and cleanup: no real infrastructure is created until the example's provider, budget expectations, and cleanup path are documented.
+- Deployment approvals and rollback: require a protected, explicit approval before apply; define recovery expectations for the selected Azure services.
+- Cost and cleanup: no real infrastructure is created until the Azure resource scope, budget expectations, and cleanup path are documented.
 
 ## Validation
 
