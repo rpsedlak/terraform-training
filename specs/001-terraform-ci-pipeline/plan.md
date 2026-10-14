@@ -19,6 +19,7 @@ Keep the pipeline definition separate from Terraform configuration. Target Micro
 | Bastion service | Deploy Azure Bastion into `AzureBastionSubnet` ([ADR-004](decisions/ADR-004-azure-bastion.md)) | Provides the selected Bastion service in the environment. |
 | Server compute and storage | Exactly one VM in the servers subnet; default size `Standard_B2s_v2`, overrideable by a Terraform variable constrained to B-series SKUs with at least two cores; attached disk uses Premium managed storage ([ADR-005](decisions/ADR-005-single-server-vm.md), [ADR-006](decisions/ADR-006-b-series-vm-size.md), [ADR-007](decisions/ADR-007-premium-managed-disk.md)) | Defines the initial server footprint, minimum compute size, and disk tier. |
 | Server public IP | No public IP attached to the server VM ([ADR-008](decisions/ADR-008-no-server-public-ip.md)) | Keeps the server VM off direct public IP access. |
+| Environment naming | Use `d` for development, `t` for testing, and `p` for production in resource names ([ADR-009](decisions/ADR-009-environment-naming-codes.md)) | Distinguishes resources by deployment environment. |
 | Terraform version | Unresolved | Must be pinned consistently in local and CI workflows. |
 | Azure resource scope and root module | Unresolved | Determines the Terraform configuration and validation prerequisites. |
 | State backend and locking | Unresolved | State must be shared and protected for team workflows. |
