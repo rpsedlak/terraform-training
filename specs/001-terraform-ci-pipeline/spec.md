@@ -44,9 +44,9 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 ## Constraints and assumptions
 
-- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)). The Azure services and root module scope, CI provider, Terraform version, state backend, and execution identity are undecided.
+- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The Azure services and root module scope, CI provider, Terraform version, state backend, and execution identity are undecided.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
-- Terraform commands and configuration will be selected after the platform and provider decisions are approved.
+- Terraform commands and configuration details will be selected after the platform, resource scope, and version decisions are approved.
 
 ## Open questions
 
