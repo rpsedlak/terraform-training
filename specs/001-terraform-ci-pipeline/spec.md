@@ -33,6 +33,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - The environment creates one virtual machine in the servers subnet, as decided in [ADR-005](decisions/ADR-005-single-server-vm.md).
 - The VM defaults to `Standard_B2s_v2`; a Terraform input variable can override the size with a B-series SKU of at least two cores, as decided in [ADR-006](decisions/ADR-006-b-series-vm-size.md).
 - The VM's attached disk is an Azure Premium managed disk, as decided in [ADR-007](decisions/ADR-007-premium-managed-disk.md).
+- The server VM will not have a public IP address attached, as decided in [ADR-008](decisions/ADR-008-no-server-public-ip.md).
 - A plan is generated for review on proposed changes, subject to the selected CI platform's security constraints.
 - Applying a plan requires an explicit approval gate and is not triggered by an unreviewed change.
 - Provider credentials and backend configuration are supplied through an approved secure mechanism, not committed to source control.
@@ -47,13 +48,14 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - [ ] Without an override, the VM size is `Standard_B2s_v2`.
 - [ ] A VM size override is accepted only when it is a B-series SKU with at least two cores.
 - [ ] The VM's attached disk is configured as a Premium managed disk.
+- [ ] The server VM has no public IP address attached to its network interface.
 - [ ] A proposed change produces a plan that can be reviewed before apply.
 - [ ] An apply cannot run without the agreed approval gate.
 - [ ] No credentials, state files, or generated plan artifacts containing sensitive data are committed to the repository.
 
 ## Constraints and assumptions
 
-- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The single-VNet topology and server subnet size are recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md); Azure Bastion deployment is recorded in [ADR-004](decisions/ADR-004-azure-bastion.md); one VM in the servers subnet is recorded in [ADR-005](decisions/ADR-005-single-server-vm.md); its default size and override constraints are recorded in [ADR-006](decisions/ADR-006-b-series-vm-size.md); and its Premium managed disk requirement is recorded in [ADR-007](decisions/ADR-007-premium-managed-disk.md). CIDR allocations for the VNet and gateway and Bastion subnets remain open. VM image, operating system, exact disk SKU/performance settings, other Azure resource scope, CI provider, Terraform version, state backend, and execution identity are undecided.
+- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The single-VNet topology and server subnet size are recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md); Azure Bastion deployment is recorded in [ADR-004](decisions/ADR-004-azure-bastion.md); one VM in the servers subnet is recorded in [ADR-005](decisions/ADR-005-single-server-vm.md); its default size and override constraints are recorded in [ADR-006](decisions/ADR-006-b-series-vm-size.md); its Premium managed disk requirement is recorded in [ADR-007](decisions/ADR-007-premium-managed-disk.md); and the server VM public IP restriction is recorded in [ADR-008](decisions/ADR-008-no-server-public-ip.md). CIDR allocations for the VNet and gateway and Bastion subnets remain open. VM image, operating system, exact disk SKU/performance settings, access method, other Azure resource scope, CI provider, Terraform version, state backend, and execution identity are undecided.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
 - Terraform commands and configuration details will be selected after the platform, resource scope, and version decisions are approved.
 

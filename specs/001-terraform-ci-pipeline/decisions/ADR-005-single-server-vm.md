@@ -14,5 +14,5 @@ Create exactly one virtual machine in the servers subnet of the virtual network.
 ## Consequences
 
 - Terraform configuration will create one VM and attach its network interface to the servers subnet.
-- The VM operating system/image and access method remain to be decided before implementation. Its default size and override rule are defined in [ADR-006](ADR-006-b-series-vm-size.md), and its Premium managed disk requirement is defined in [ADR-007](ADR-007-premium-managed-disk.md).
+- The VM operating system/image and access method remain to be decided before implementation. Its default size and override rule are defined in [ADR-006](ADR-006-b-series-vm-size.md), its Premium managed disk requirement is defined in [ADR-007](ADR-007-premium-managed-disk.md), and its public IP restriction is defined in [ADR-008](ADR-008-no-server-public-ip.md).
 - The VM must not be placed in `AzureBastionSubnet` or `GatewaySubnet`.
