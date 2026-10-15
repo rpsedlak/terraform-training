@@ -1,6 +1,6 @@
 # ADR-008: Do Not Attach a Public IP to the Server VM
 
-**Status:** Accepted  
+**Status:** Superseded by [ADR-017](ADR-017-jit-vm-access.md) and [ADR-018](ADR-018-source-restricted-rdp.md).
 **Date:** 2026-10-14
 
 ## Context

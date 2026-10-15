@@ -2,7 +2,7 @@
 
 **Related spec:** [spec.md](spec.md)  
 **Related plan:** [plan.md](plan.md)  
-**Status:** In Progress
+**Status:** Superseded by [feature 007](../007-jit-vm-access/tasks.md) and ADR-018. Items below are historical, not current deployment tasks.
 
 ## Specification
 

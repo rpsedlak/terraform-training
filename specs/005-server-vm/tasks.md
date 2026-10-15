@@ -1,8 +1,16 @@
-# Tasks: Private Server VM
+# Tasks: Server VM
 
 **Related spec:** [spec.md](spec.md)  
 **Related plan:** [plan.md](plan.md)  
 **Status:** In Progress
+
+## Public Access Revision: ADR-018
+
+- [x] Supersede private-only/Bastion/JIT access with feature 007 and ADR-018; historical checks below describe the former architecture.
+- [x] Attach a Standard static IPv4 public IP to the existing NIC with its subnet NSG association as a dependency.
+- [x] Replace JIT with TCP 3389 allow from `69.244.159.36/32` and deny from other sources; remove licensing/migration gates and preserve compute/credentials.
+- [x] Updated offline tests pass for public IP, exact NSG rules, VM defaults, disk, and credentials.
+- [ ] Review the live plan for in-place NIC changes and no VM replacement; test allowed/disallowed-source connectivity only after deployment authorization.
 
 ## Specification
 

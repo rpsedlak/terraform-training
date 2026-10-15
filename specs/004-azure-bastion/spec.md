@@ -1,6 +1,6 @@
 # Feature: Azure Bastion
 
-**Status:** Approved
+**Status:** Superseded by [feature 007](../007-jit-vm-access/spec.md) and ADR-018; retained as historical requirements.
 **Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 

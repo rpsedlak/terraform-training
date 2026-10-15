@@ -18,6 +18,7 @@ Copy the three files from `templates/` when creating a feature. Keep all three i
 | [001 Terraform CI Pipeline](001-terraform-ci-pipeline/spec.md) | Approved | Define the GitHub Actions CI workflow and protected Azure apply. |
 | [002 Azure Environment](002-azure-environment/spec.md) | Approved | Integrate the component specifications and shared deployment decisions. |
 | [003 Network Foundation](003-network-foundation/spec.md) | Approved | Specify the VNet and subnet topology from ADR-003 and ADR-010. |
-| [004 Azure Bastion](004-azure-bastion/spec.md) | Approved | Specify Basic Azure Bastion deployment from ADR-004. |
-| [005 Server VM](005-server-vm/spec.md) | Approved | Specify the server VM, size, disk, and public IP constraints from ADR-005 through ADR-008. |
+| [004 Azure Bastion](004-azure-bastion/spec.md) | Superseded | Historical requirements replaced by feature 007 and ADR-017. |
+| [005 Server VM](005-server-vm/spec.md) | Approved | Specify the server VM, size, disk and source-restricted public access under ADR-018. |
 | [006 Environment Naming](006-environment-naming/spec.md) | Approved | Specify the environment codes and Azure naming format from ADR-009 and ADR-014. |
+| [007 Public VM Access](007-jit-vm-access/spec.md) | In Progress | Direct public-IP RDP restricted to `69.244.159.36/32`; ADR-018 removes JIT and licensing prerequisites. |
