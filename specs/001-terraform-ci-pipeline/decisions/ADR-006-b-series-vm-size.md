@@ -9,11 +9,12 @@ The environment will include one VM in the servers subnet as recorded in [ADR-00
 
 ## Decision
 
-Use `Standard_B2s_v2` as the VM size by default. Expose the VM size as a Terraform input variable so deployments can override the default. The configured SKU, including any override, must be a B-series size with at least two cores (vCPUs).
+Use `Standard_B2s_v2` as the VM size by default. Expose the VM size as a Terraform input variable so deployments can override the default. The configured SKU, including any override, must be a B-series size with at least two cores (vCPUs), except for the development quota exception in [ADR-016](ADR-016-development-vm-size-quota-exception.md).
 
 ## Consequences
 
 - Deployments that do not set the input variable use `Standard_B2s_v2`.
 - An override may select another B-series SKU, but it must provide at least two vCPUs and be available in the target Azure region.
+- Development may use `Standard_D2ds_v6` as the explicit quota exception in ADR-016.
 - The Terraform variable name remains an implementation detail.
-- Terraform validation or plan review must verify the default and any configured override satisfy the family and core-count requirements.
+- Terraform validation or plan review must verify the default and any configured override satisfy the family, environment-scope, and core-count requirements.

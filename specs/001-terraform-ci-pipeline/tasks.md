@@ -15,6 +15,7 @@
 - [x] Add GitHub Actions pull-request checks for formatting and validation in `infra/`.
 - [x] Add a protected privileged-plan job that publishes resource addresses, actions, and changed attribute names, not values.
 - [x] Add a manually dispatched apply job restricted to `main` and protected GitHub environments.
+- [x] Add environment and VM-size dispatch inputs; pass the selected VM size to plan and apply.
 - [x] Configure workflow OIDC login and separate plan/apply client ID inputs; exclude fork pull requests.
 - [ ] Create the GitHub plan/apply environments, required reviewer rules, and deployment-branch restrictions.
 - [ ] Configure Microsoft Entra federated credentials and least-privilege plan/apply roles for each environment.
@@ -27,6 +28,7 @@
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
 - [ ] Verify untrusted changes cannot access deployment credentials or sensitive plan output.
 - [ ] Verify apply is blocked until the protected approval is granted.
+- [x] Test manual VM-size input and propagation to plan/apply in workflow tests.
 - [x] Parse both workflow YAML files locally; `actionlint` is not installed.
 - [x] Test workflow trigger, OIDC, Key Vault, sanitization, and apply-gate contracts with Ruby tests.
 - [x] Verify provider initialization and validation with the committed lockfile on Linux amd64.

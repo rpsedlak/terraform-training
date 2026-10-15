@@ -26,7 +26,7 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 ## Requirements
 
 - Create exactly one VM in the servers subnet and not in `AzureBastionSubnet`, as decided in [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md).
-- Default the VM size to `Standard_B2s_v2`. Expose an input variable to override it; any override must be a B-series SKU with at least two vCPUs, as decided in [ADR-006](../001-terraform-ci-pipeline/decisions/ADR-006-b-series-vm-size.md).
+- Default the VM size to `Standard_B2s_v2`. Expose an input variable to override it; overrides must be B-series SKUs with at least two vCPUs, except development may use `Standard_D2ds_v6` under [ADR-016](../001-terraform-ci-pipeline/decisions/ADR-016-development-vm-size-quota-exception.md).
 - Configure the VM's attached disk as Premium managed storage, as decided in [ADR-007](../001-terraform-ci-pipeline/decisions/ADR-007-premium-managed-disk.md).
 - Do not associate a public IP with the server VM or its network interface, as decided in [ADR-008](../001-terraform-ci-pipeline/decisions/ADR-008-no-server-public-ip.md).
 - Use the Windows Server 2022 Datacenter Azure Edition image: `MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest`.
@@ -40,7 +40,8 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 
 - [ ] The plan contains exactly one VM attached to the servers subnet.
 - [ ] Without an override, the VM size is `Standard_B2s_v2`.
-- [ ] A B-series override with at least two vCPUs is accepted; a non-B-series or undersized override is rejected.
+- [ ] A B-series override with at least two vCPUs is accepted; a non-B-series or undersized override is rejected, except the approved development-only `Standard_D2ds_v6` override.
+- [ ] `Standard_D2ds_v6` is accepted for development and rejected for testing and production.
 - [ ] The VM's attached disk uses an approved Premium managed disk SKU.
 - [ ] The VM uses the approved Windows Server 2022 Datacenter Azure Edition image.
 - [ ] Bastion RDP access uses the VM's private IP; inbound RDP is limited to `AzureBastionSubnet`.
@@ -54,11 +55,11 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 
 ## Constraints and assumptions
 
-- The VM decisions are recorded in [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md) through [ADR-008](../001-terraform-ci-pipeline/decisions/ADR-008-no-server-public-ip.md).
+- The VM decisions are recorded in ADR-005 through ADR-008 and [ADR-016](../001-terraform-ci-pipeline/decisions/ADR-016-development-vm-size-quota-exception.md).
 - Network resources are provided by feature 003; Azure Bastion is specified by feature 004.
 - The VM image, private access path, RDP source, and P10 OS disk are defined by ADR-005 through ADR-008. Credential sourcing is defined by ADR-015.
 - Terraform state contains the VM password and must be restricted to the approved deployment identities.
 
 ## Open questions
 
-None. The VM image, access path, disk role/SKU, and VM size constraints are decided in ADR-005 through ADR-008.
+None. The VM image, access path, disk role/SKU, and VM size constraints are decided in ADR-005 through ADR-008 and ADR-016.

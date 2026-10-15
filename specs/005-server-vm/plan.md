@@ -6,7 +6,7 @@
 
 ## Technical approach
 
-Create one East US Windows Server 2022 Datacenter Azure Edition VM and its network interface in the servers subnet supplied by feature 003. Set `Standard_B2s_v2` as the VM-size default and validate B-series overrides with at least two vCPUs. Use a Premium SSD P10 OS disk only, no VM public IP, and RDP through Bastion's private connection.
+Create one East US Windows Server 2022 Datacenter Azure Edition VM and its network interface in the servers subnet supplied by feature 003. Set `Standard_B2s_v2` as the VM-size default; allow B-series overrides with at least two vCPUs and the `Standard_D2ds_v6` development-only exception in ADR-016. Use a Premium SSD P10 OS disk only, no VM public IP, and RDP through Bastion's private connection.
 
 After Azure OIDC login, retrieve the VM administrator username from Key Vault secret `adminuser` and the password from `adminpassword`. Pass both values to Terraform without printing them. Limit state access because Terraform state contains the VM password.
 
@@ -16,6 +16,7 @@ After Azure OIDC login, retrieve the VM administrator username from Key Vault se
 | --- | --- | --- |
 | VM count and placement | One VM in the servers subnet ([ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md)) | Approved compute footprint. |
 | VM size | Default `Standard_B2s_v2`; B-series override with at least two vCPUs ([ADR-006](../001-terraform-ci-pipeline/decisions/ADR-006-b-series-vm-size.md)) | Approved default and minimum. |
+| Development quota exception | `Standard_D2ds_v6` only in development ([ADR-016](../001-terraform-ci-pipeline/decisions/ADR-016-development-vm-size-quota-exception.md)) | East US Bsv2 quota is exhausted for this subscription; D2ds_v6 has available quota. |
 | OS disk | Premium SSD P10, no data disk ([ADR-007](../001-terraform-ci-pipeline/decisions/ADR-007-premium-managed-disk.md)) | Approved tier, SKU, and disk role. |
 | Public IP | None on VM or NIC ([ADR-008](../001-terraform-ci-pipeline/decisions/ADR-008-no-server-public-ip.md)) | Prevents direct public IP exposure. |
 | Image and access | Windows Server 2022 Datacenter Azure Edition; RDP through Bastion on private IP | Approved OS and management path. |

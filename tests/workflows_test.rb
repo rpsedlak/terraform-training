@@ -51,11 +51,14 @@ class WorkflowsTest < Minitest::Test
   def test_apply_is_manual_main_only_and_protected
     triggers = trigger_config(@deployment)
     apply = @deployment.dig("jobs", "apply")
+    vm_size_input = triggers.dig("workflow_dispatch", "inputs", "vm_size")
 
     assert triggers.key?("workflow_dispatch")
     assert_includes apply["if"], "github.ref == 'refs/heads/main'"
     assert_match(/terraform-apply-/, apply.dig("environment", "name"))
     assert_equal "write", apply.dig("permissions", "id-token")
+    assert_equal "Standard_B2s_v2", vm_size_input["default"]
+    assert_includes vm_size_input["options"], "Standard_D2ds_v6"
   end
 
   def test_both_jobs_read_and_mask_fixed_key_vault_secrets
@@ -83,6 +86,9 @@ class WorkflowsTest < Minitest::Test
       assert_equal "${{ steps.vm_admin.outputs.username }}", step.dig("env", "TF_VAR_vm_admin_username")
       assert_equal "${{ steps.vm_admin.outputs.password }}", step.dig("env", "TF_VAR_vm_admin_password")
     end
+
+    assert_equal "${{ inputs.vm_size || 'Standard_B2s_v2' }}", @deployment.dig("jobs", "plan", "env", "TF_VAR_vm_size")
+    assert_equal "${{ inputs.vm_size }}", @deployment.dig("jobs", "apply", "env", "TF_VAR_vm_size")
   end
 
   def test_apply_replans_and_compares_summary_before_applying
