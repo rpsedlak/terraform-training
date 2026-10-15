@@ -7,7 +7,7 @@
 ## Specification
 
 - [x] Approve features 003 through 006 and resolve implementation-blocking decisions.
-- [x] Select Terraform 1.16.6, Azure Blob state/OIDC, and the `infra/` root module (ADR-013).
+- [x] Select Terraform 1.16.6, `dizzyterraform20261014/tfstate` with `tftraining-<environment>.tfstate` keys, Azure OIDC, and the `infra/` root module (ADR-013).
 
 ## Implementation
 

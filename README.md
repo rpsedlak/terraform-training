@@ -74,7 +74,7 @@ To create a plan, supply `environment` (`development`, `testing`, or `production
 
 ## Azure and GitHub Setup
 
-The Azure Blob state resource group, storage account, and container must exist before remote `terraform init`; this repository does not bootstrap them. GitHub Actions reads their names from `TF_STATE_RESOURCE_GROUP`, `TF_STATE_STORAGE_ACCOUNT`, and `TF_STATE_CONTAINER` variables.
+The Azure Blob state resource group and container must exist before remote `terraform init`; this repository does not bootstrap them. The state storage account is `dizzyterraform20261014` and the container is `tfstate`. State keys are `tftraining-development.tfstate`, `tftraining-testing.tfstate`, and `tftraining-production.tfstate`. GitHub Actions reads the resource group name from `TF_STATE_RESOURCE_GROUP`.
 
 Configure GitHub environments `terraform-plan-development`, `terraform-plan-testing`, `terraform-plan-production`, and `terraform-apply-development`, `terraform-apply-testing`, `terraform-apply-production`. Require reviewers for each environment; restrict apply environments to `main`. Configure federated Microsoft Entra identities with least-privilege plan and apply permissions, and set environment variables `AZURE_PLAN_CLIENT_ID`, `AZURE_APPLY_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, and `TF_VM_ADMIN_USERNAME`, plus the secret `TF_VM_ADMIN_PASSWORD`. Set repository variable `TF_ENVIRONMENT` to choose the development/test/production environment used by pull-request plans.
 

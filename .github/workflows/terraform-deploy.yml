@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+env:
+  TF_STATE_STORAGE_ACCOUNT: dizzyterraform20261014
+  TF_STATE_CONTAINER: tfstate
+
 concurrency:
   group: terraform-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -46,8 +50,6 @@ jobs:
       TF_VAR_vm_admin_username: ${{ vars.TF_VM_ADMIN_USERNAME }}
       TF_VAR_vm_admin_password: ${{ secrets.TF_VM_ADMIN_PASSWORD }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
-      TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
-      TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
       TF_IN_AUTOMATION: "1"
       TF_INPUT: "0"
     steps:
@@ -69,7 +71,7 @@ jobs:
 
       - name: Initialize remote state
         run: |
-          TF_STATE_KEY="${TF_VAR_environment}.terraform.tfstate"
+          TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
           terraform -chdir=infra init -input=false \
             -backend-config="resource_group_name=${TF_STATE_RESOURCE_GROUP}" \
             -backend-config="storage_account_name=${TF_STATE_STORAGE_ACCOUNT}" \
@@ -129,8 +131,6 @@ jobs:
       TF_VAR_vm_admin_username: ${{ vars.TF_VM_ADMIN_USERNAME }}
       TF_VAR_vm_admin_password: ${{ secrets.TF_VM_ADMIN_PASSWORD }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
-      TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
-      TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
       EXPECTED_PLAN_SUMMARY: ${{ needs.plan.outputs.change_summary }}
       TF_IN_AUTOMATION: "1"
       TF_INPUT: "0"
@@ -153,7 +153,7 @@ jobs:
 
       - name: Initialize remote state
         run: |
-          TF_STATE_KEY="${TF_VAR_environment}.terraform.tfstate"
+          TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
           terraform -chdir=infra init -input=false \
             -backend-config="resource_group_name=${TF_STATE_RESOURCE_GROUP}" \
             -backend-config="storage_account_name=${TF_STATE_STORAGE_ACCOUNT}" \
