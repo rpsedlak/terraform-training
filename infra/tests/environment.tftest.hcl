@@ -1,14 +1,6 @@
 mock_provider "azurerm" {}
 
 override_resource {
-  target = azurerm_subnet.bastion
-  values = {
-    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/AzureBastionSubnet"
-  }
-  override_during = plan
-}
-
-override_resource {
   target = azurerm_subnet.servers
   values = {
     id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/snet-servers"
@@ -17,9 +9,9 @@ override_resource {
 }
 
 override_resource {
-  target = azurerm_public_ip.bastion
+  target = azurerm_public_ip.server
   values = {
-    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/publicIPAddresses/test-bastion-ip"
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/publicIPAddresses/test-server-ip"
   }
   override_during = plan
 }
@@ -62,8 +54,7 @@ run "development_names" {
   assert {
     condition = (
       local.names.vnet == "vnet-terraform-training-d-eastus-001" &&
-      local.names.bastion == "bas-terraform-training-d-eastus-001" &&
-      local.names.bastion_ip == "pip-terraform-training-d-eastus-001" &&
+      local.names.server_ip == "pip-server-terraform-training-d-eastus-001" &&
       local.names.server_nsg == "nsg-terraform-training-d-eastus-001" &&
       local.names.server_nic == "nic-terraform-training-d-eastus-001" &&
       local.names.server_os_disk == "disk-terraform-training-d-eastus-001"
@@ -77,29 +68,27 @@ run "development_names" {
   }
 
   assert {
-    condition     = local.bastion_subnet_cidr == "10.20.0.0/26" && local.server_subnet_cidr == "10.20.1.0/24"
-    error_message = "Bastion and server subnets must use their approved CIDR ranges."
+    condition     = local.server_subnet_cidr == "10.20.1.0/24"
+    error_message = "The server subnet CIDR must remain unchanged."
   }
 
   assert {
     condition = (
-      cidrsubnet(local.vnet_cidr, 4, 0) == local.bastion_subnet_cidr &&
       cidrsubnet(local.vnet_cidr, 2, 1) == local.server_subnet_cidr
     )
-    error_message = "subnets must be contained in the VNet and must not overlap."
+    error_message = "The server subnet must remain contained in the VNet."
   }
 
   assert {
-    condition     = azurerm_bastion_host.environment.sku == "Basic" && azurerm_public_ip.bastion.sku == "Standard" && azurerm_public_ip.bastion.allocation_method == "Static"
-    error_message = "Bastion must use Basic SKU and a Standard static public IP."
+    condition     = azurerm_public_ip.server.sku == "Standard" && azurerm_public_ip.server.allocation_method == "Static" && azurerm_public_ip.server.ip_version == "IPv4"
+    error_message = "The server must use a Standard static IPv4 public IP."
   }
 
   assert {
     condition = (
-      azurerm_bastion_host.environment.ip_configuration[0].subnet_id == azurerm_subnet.bastion.id &&
-      azurerm_bastion_host.environment.ip_configuration[0].public_ip_address_id == azurerm_public_ip.bastion.id
+      azurerm_network_interface.server.ip_configuration[0].public_ip_address_id == azurerm_public_ip.server.id
     )
-    error_message = "Bastion must be attached to AzureBastionSubnet and its Standard public IP."
+    error_message = "The server NIC must use the server public IP."
   }
 
   assert {
@@ -118,13 +107,38 @@ run "development_names" {
   }
 
   assert {
-    condition     = anytrue([for rule in azurerm_network_security_group.servers.security_rule : rule.source_address_prefix == "10.20.0.0/26" && rule.destination_port_range == "3389" && rule.access == "Allow"])
-    error_message = "RDP must be allowed from the Bastion subnet."
+    condition = (
+      length(azurerm_network_security_group.servers.security_rule) == 2 &&
+      anytrue([for rule in azurerm_network_security_group.servers.security_rule :
+        rule.name == "AllowRdpFromTrustedPublicIp" &&
+        rule.priority == 100 &&
+        rule.direction == "Inbound" &&
+        rule.access == "Allow" &&
+        rule.protocol == "Tcp" &&
+        rule.source_port_range == "*" &&
+        rule.destination_port_range == "3389" &&
+        rule.source_address_prefix == "69.244.159.36/32" &&
+        rule.destination_address_prefix == "*"
+      ])
+    )
+    error_message = "Only the approved public /32 may be allowed inbound TCP 3389 at priority 100."
   }
 
   assert {
-    condition     = anytrue([for rule in azurerm_network_security_group.servers.security_rule : rule.source_address_prefix == "*" && rule.destination_port_range == "3389" && rule.access == "Deny"])
-    error_message = "RDP from every other source must be denied."
+    condition = (
+      anytrue([for rule in azurerm_network_security_group.servers.security_rule :
+        rule.name == "DenyRdpFromOtherSources" &&
+        rule.priority == 110 &&
+        rule.direction == "Inbound" &&
+        rule.access == "Deny" &&
+        rule.protocol == "Tcp" &&
+        rule.source_port_range == "*" &&
+        rule.destination_port_range == "3389" &&
+        rule.source_address_prefix == "*" &&
+        rule.destination_address_prefix == "*"
+      ])
+    )
+    error_message = "RDP from all other sources, including the VNet, must be explicitly denied after the trusted-IP allow."
   }
 
   assert {
@@ -138,7 +152,7 @@ run "development_names" {
 
   assert {
     condition     = contains(azurerm_windows_virtual_machine.server.network_interface_ids, azurerm_network_interface.server.id)
-    error_message = "the server VM must use the private server NIC."
+    error_message = "the server VM must retain the server NIC."
   }
 }
 
@@ -160,6 +174,15 @@ run "testing_code" {
     condition     = local.names.server_vm == "vm-terraform-training-t-eastus-001"
     error_message = "testing VM names must use the t environment code."
   }
+
+  assert {
+    condition = (
+      length(azurerm_network_security_group.servers.security_rule) == 2 &&
+      toset([for rule in azurerm_network_security_group.servers.security_rule : rule.source_address_prefix if rule.access == "Allow"]) == toset(["69.244.159.36/32"]) &&
+      anytrue([for rule in azurerm_network_security_group.servers.security_rule : rule.access == "Deny" && rule.source_address_prefix == "*" && rule.destination_port_range == "3389" && rule.priority == 110])
+    )
+    error_message = "Testing must use the same trusted public /32 and deny other RDP sources."
+  }
 }
 
 run "production_code" {
@@ -179,6 +202,15 @@ run "production_code" {
   assert {
     condition     = local.names.server_vm == "vm-terraform-training-p-eastus-001"
     error_message = "production VM names must use the p environment code."
+  }
+
+  assert {
+    condition = (
+      length(azurerm_network_security_group.servers.security_rule) == 2 &&
+      toset([for rule in azurerm_network_security_group.servers.security_rule : rule.source_address_prefix if rule.access == "Allow"]) == toset(["69.244.159.36/32"]) &&
+      anytrue([for rule in azurerm_network_security_group.servers.security_rule : rule.access == "Deny" && rule.source_address_prefix == "*" && rule.destination_port_range == "3389" && rule.priority == 110])
+    )
+    error_message = "Production must use the same trusted public /32 and deny other RDP sources."
   }
 }
 
@@ -301,7 +333,7 @@ run "reject_long_admin_username" {
   expect_failures = [var.vm_admin_username]
 }
 
-run "server_nic_has_no_public_ip" {
+run "server_nic_has_public_ip" {
   command = plan
 
   variables {
@@ -311,7 +343,7 @@ run "server_nic_has_no_public_ip" {
   }
 
   assert {
-    condition     = azurerm_network_interface.server.ip_configuration[0].public_ip_address_id == null
-    error_message = "the server network interface must not have a public IP association."
+    condition     = azurerm_network_interface.server.ip_configuration[0].public_ip_address_id == azurerm_public_ip.server.id
+    error_message = "the server network interface must have the source-restricted public IP association."
   }
 }

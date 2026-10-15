@@ -1,6 +1,6 @@
 # ADR-003: Use a Single Azure Virtual Network
 
-**Status:** Accepted; gateway requirement superseded by [ADR-010](ADR-010-no-virtual-network-gateway.md)
+**Status:** Accepted; gateway requirement superseded by [ADR-010](ADR-010-no-virtual-network-gateway.md); Bastion subnet retired by [ADR-017](ADR-017-jit-vm-access.md), retained under [ADR-018](ADR-018-source-restricted-rdp.md).
 **Date:** 2026-10-14
 
 ## Context

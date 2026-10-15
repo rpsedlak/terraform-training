@@ -4,6 +4,12 @@
 **Related plan:** [plan.md](plan.md)  
 **Status:** In Progress
 
+## Public Access Revision: ADR-018
+
+- [x] Retain Bastion subnet removal under ADR-018; source-restricted direct RDP does not change address ranges.
+- [x] Preserve the VNet `10.20.0.0/22` and servers subnet `10.20.1.0/24`; updated mock tests pass.
+- [ ] Review live removal of the Bastion subnet without replacing the VNet or servers subnet; historical checks below do not verify this migration.
+
 ## Specification
 
 - [x] Select `10.20.0.0/22`, `10.20.0.0/26`, and `10.20.1.0/24`; verify ranges do not overlap.

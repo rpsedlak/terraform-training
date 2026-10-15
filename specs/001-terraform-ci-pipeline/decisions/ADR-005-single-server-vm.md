@@ -1,6 +1,6 @@
 # ADR-005: Create One VM in the Servers Subnet
 
-**Status:** Accepted  
+**Status:** Accepted for compute placement and image; Bastion/private-IP access superseded by [ADR-018](ADR-018-source-restricted-rdp.md).
 **Date:** 2026-10-14
 
 ## Context

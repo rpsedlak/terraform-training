@@ -4,6 +4,13 @@
 **Related plan:** [plan.md](plan.md)  
 **Status:** In Progress
 
+## Public Access Revision: ADR-018
+
+- [x] Replace active Bastion/JIT requirements with feature 007 and ADR-018; preserve the historical evidence below.
+- [x] Integrate direct public-IP RDP from `69.244.159.36/32` and explicit deny of other sources; remove AzAPI and licensing prerequisites.
+- [x] Record final direct-access checks in feature 007: readonly init, format/validate, 13 Terraform tests, 8 source tests, 10 workflow tests, links and whitespace pass.
+- [ ] Review the actual development migration plan before separately authorized deployment.
+
 ## Specification
 
 - [x] Approve features 003 through 006 and resolve implementation-blocking decisions.

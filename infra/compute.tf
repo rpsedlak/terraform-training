@@ -5,14 +5,14 @@ resource "azurerm_network_security_group" "servers" {
   tags                = local.tags
 
   security_rule {
-    name                       = "AllowRdpFromAzureBastionSubnet"
+    name                       = "AllowRdpFromTrustedPublicIp"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3389"
-    source_address_prefix      = local.bastion_subnet_cidr
+    source_address_prefix      = local.server_rdp_source_cidr
     destination_address_prefix = "*"
   }
 
@@ -44,7 +44,20 @@ resource "azurerm_network_interface" "server" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.servers.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.server.id
   }
+
+  depends_on = [azurerm_subnet_network_security_group_association.servers]
+}
+
+resource "azurerm_public_ip" "server" {
+  name                = local.names.server_ip
+  location            = azurerm_resource_group.environment.location
+  resource_group_name = azurerm_resource_group.environment.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  ip_version          = "IPv4"
+  tags                = local.tags
 }
 
 resource "azurerm_windows_virtual_machine" "server" {

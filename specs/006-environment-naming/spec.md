@@ -29,7 +29,7 @@ Resources are deployed into development, testing, and production environments. T
 - Select the environment through one `environment` input with values `development`, `testing`, or `production`, then derive the corresponding code.
 - Include the selected environment code in resource names wherever Azure naming rules permit.
 - Derive the code from one selected environment configuration; do not scatter inconsistent literals across resource declarations.
-- Preserve service-mandated names such as `AzureBastionSubnet`.
+- Under ADR-018, retain `pip-server-terraform-training-<environment-code>-eastus-001` for the server public IP, avoiding the retired Bastion IP name. No JIT policy or Bastion subnet is created.
 
 ## Acceptance criteria
 
@@ -43,7 +43,7 @@ Resources are deployed into development, testing, and production environments. T
 
 - The environment code mapping is accepted in [ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md).
 - The component order is accepted in [ADR-014](../001-terraform-ci-pipeline/decisions/ADR-014-azure-resource-naming.md).
-- This naming feature is consumed by the network, Bastion, and server VM features.
+- This naming feature is consumed by the network, server VM and public-access features.
 
 ## Open questions
 

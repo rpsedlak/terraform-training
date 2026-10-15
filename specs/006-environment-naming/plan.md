@@ -8,6 +8,8 @@
 
 Use one `environment` input (`development`, `testing`, or `production`) and derive `d`, `t`, or `p` from a central mapping. Compose names using `<resource-abbreviation>-terraform-training-<environment-code>-eastus-<instance>` where permitted. Preserve Azure-required names and adapt for resource-specific constraints.
 
+ADR-018 retains `pip-server-terraform-training-<environment-code>-eastus-001` for the public IP and removes the JIT policy name and combined-name constraint. Retire Bastion names and preserve existing VM/network names.
+
 ## Decisions
 
 | Decision | Choice | Rationale |

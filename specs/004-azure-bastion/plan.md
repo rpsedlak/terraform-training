@@ -1,7 +1,7 @@
 # Plan: Azure Bastion
 
 **Related spec:** [spec.md](spec.md)  
-**Status:** Approved
+**Status:** Superseded by [feature 007](../007-jit-vm-access/plan.md) and ADR-018; do not implement this historical plan.
 **Last updated:** 2026-10-14
 
 ## Technical approach

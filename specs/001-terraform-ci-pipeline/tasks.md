@@ -12,6 +12,7 @@
 
 ## Implementation
 
+- [x] Retire JIT pricing/policy/operator permission prerequisites under ADR-018; retain existing network, compute, state and Key Vault role requirements. No Azure RBAC or billing changes were performed.
 - [x] Add GitHub Actions pull-request checks for formatting and validation in `infra/`.
 - [x] Add a protected privileged-plan job that publishes resource addresses, actions, and changed attribute names, not values.
 - [x] Add a manually dispatched apply job restricted to `main` and protected GitHub environments.

@@ -4,6 +4,12 @@
 **Related plan:** [plan.md](plan.md)  
 **Status:** In Progress
 
+## Public Access Revision: ADR-018
+
+- [x] Retain the distinct `pip-server-...` name under ADR-018 and remove the JIT policy name.
+- [x] Remove active Bastion names and JIT combined-name constraints; mock tests retain environment naming coverage.
+- [ ] Verify names in the authorized environment's live migration plan.
+
 ## Specification
 
 - [x] Approve the CAF component pattern and Azure naming exceptions (ADR-014).
