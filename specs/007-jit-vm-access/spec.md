@@ -16,7 +16,7 @@ Basic Bastion adds cost and provisioning time to this single-server training env
 - Access is always available from the approved source; there is no request or time limit. Do not permit RDP from arbitrary sources or open additional management ports/protocols.
 - Remove the JIT policy, pricing data sources, prerequisite gates, JIT output, AzAPI dependency and JIT-specific permissions. No Defender plan or billing change is required or managed.
 - Keep protected approvals, OIDC, Key Vault credentials, sanitized review, and environment state isolation unchanged.
-- User approved this replacement on 2026-10-15; the earlier JIT/P2 approval is superseded. Deployment is not authorized.
+- User approved this replacement on 2026-10-15; the earlier JIT/P2 approval is superseded. The user separately authorized development deployment on 2026-10-15 through the protected workflow. No deployment to testing/production or subscription billing change is authorized.
 
 ## Acceptance Criteria
 
@@ -25,12 +25,12 @@ Basic Bastion adds cost and provisioning time to this single-server training env
 - [x] The only configured inbound allow is TCP 3389 from `69.244.159.36/32`, before an explicit deny for other RDP sources.
 - [x] No active JIT policy, Defender licensing prerequisite, AzAPI dependency, or JIT-specific output remains.
 - [x] Offline tests validate exact NSG rules, addressing, naming, public IP, credentials, and existing compute constraints.
-- [ ] Review a live plan for in-place updates and removal of any previous policy without unintended VM/network replacement.
+- [x] Review the development workflow plan and applied changes: two creates (NIC and VM), no changes or destroys; existing networking and public IP retained. No JIT policy is configured or Bastion host present.
 - [ ] After separately authorized deployment, RDP succeeds from the approved source and new connections fail from another public IP and private-network sources.
 
 ## Non-goals
 
-No deployment, subscription billing change, subnet renumbering, VM replacement, custom access service, or unrelated Defender changes.
+No automatic or unapproved deployment, subscription billing change, subnet renumbering, VM replacement, custom access service, or unrelated Defender changes. The separately authorized development deployment is recorded in the task file.
 
 ## Decisions and Risks
 
