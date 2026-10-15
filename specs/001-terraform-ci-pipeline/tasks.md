@@ -18,6 +18,7 @@
 - [x] Configure workflow OIDC login and separate plan/apply client ID inputs; exclude fork pull requests.
 - [ ] Create the GitHub plan/apply environments, required reviewer rules, and deployment-branch restrictions.
 - [ ] Configure Microsoft Entra federated credentials and least-privilege plan/apply roles for each environment.
+- [ ] Grant plan/apply identities Key Vault secret-read access only to the VM credential secrets.
 
 ## Verification
 

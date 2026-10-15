@@ -47,8 +47,8 @@ jobs:
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_environment: ${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}
-      TF_VAR_vm_admin_username: ${{ vars.TF_VM_ADMIN_USERNAME }}
-      TF_VAR_vm_admin_password: ${{ secrets.TF_VM_ADMIN_PASSWORD }}
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      TF_VM_ADMIN_PASSWORD_SECRET_NAME: ${{ vars.TF_VM_ADMIN_PASSWORD_SECRET_NAME }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
       TF_IN_AUTOMATION: "1"
       TF_INPUT: "0"
@@ -69,6 +69,22 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Read VM administrator credentials from Key Vault
+        id: vm_admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name "$TF_VM_ADMIN_PASSWORD_SECRET_NAME" --query value --output tsv)"
+          if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
+            echo "Required VM credentials are missing or invalid in Key Vault."
+            exit 1
+          fi
+          echo "::add-mask::$username"
+          echo "::add-mask::$password"
+          printf 'username=%s\n' "$username" >> "$GITHUB_OUTPUT"
+          printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
+
       - name: Initialize remote state
         run: |
           TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
@@ -86,6 +102,9 @@ jobs:
       - name: Generate plan and sanitized summary
         id: plan
         shell: bash
+        env:
+          TF_VAR_vm_admin_username: ${{ steps.vm_admin.outputs.username }}
+          TF_VAR_vm_admin_password: ${{ steps.vm_admin.outputs.password }}
         run: |
           set -euo pipefail
           plan_file="${RUNNER_TEMP}/terraform.tfplan"
@@ -128,8 +147,8 @@ jobs:
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_environment: ${{ inputs.environment }}
-      TF_VAR_vm_admin_username: ${{ vars.TF_VM_ADMIN_USERNAME }}
-      TF_VAR_vm_admin_password: ${{ secrets.TF_VM_ADMIN_PASSWORD }}
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      TF_VM_ADMIN_PASSWORD_SECRET_NAME: ${{ vars.TF_VM_ADMIN_PASSWORD_SECRET_NAME }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
       EXPECTED_PLAN_SUMMARY: ${{ needs.plan.outputs.change_summary }}
       TF_IN_AUTOMATION: "1"
@@ -151,6 +170,22 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Read VM administrator credentials from Key Vault
+        id: vm_admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name "$TF_VM_ADMIN_PASSWORD_SECRET_NAME" --query value --output tsv)"
+          if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
+            echo "Required VM credentials are missing or invalid in Key Vault."
+            exit 1
+          fi
+          echo "::add-mask::$username"
+          echo "::add-mask::$password"
+          printf 'username=%s\n' "$username" >> "$GITHUB_OUTPUT"
+          printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
+
       - name: Initialize remote state
         run: |
           TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
@@ -167,6 +202,9 @@ jobs:
 
       - name: Replan, compare summary, and apply
         shell: bash
+        env:
+          TF_VAR_vm_admin_username: ${{ steps.vm_admin.outputs.username }}
+          TF_VAR_vm_admin_password: ${{ steps.vm_admin.outputs.password }}
         run: |
           set -euo pipefail
           plan_file="${RUNNER_TEMP}/terraform.tfplan"
