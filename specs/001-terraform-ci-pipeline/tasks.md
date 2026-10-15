@@ -30,8 +30,9 @@
 - [x] Parse both workflow YAML files locally; `actionlint` is not installed.
 - [x] Test workflow trigger, OIDC, Key Vault, sanitization, and apply-gate contracts with Ruby tests.
 - [x] Verify provider initialization and validation with the committed lockfile on Linux amd64.
+- [x] Verify same-repository pull-request plans are gated on required Azure configuration.
 - [ ] Confirm all acceptance criteria in `spec.md` and record evidence.
 
 ## Completion notes
 
-Both workflow YAML files parse locally, and the Ruby tests cover workflow triggers, OIDC, Key Vault, state keys, plan sanitization, apply gating, and Terraform source contracts. Terraform 1.16.6 format, readonly provider initialization, validation, and all 11 Terraform tests pass on Linux amd64. The AzureRM lockfile now includes the Linux provider package checksum required by CI. `actionlint` is unavailable. GitHub environments/reviewer rules and Microsoft Entra OIDC federation/Key Vault permissions must be configured before privileged jobs can run.
+Both workflow YAML files parse locally, and the Ruby tests cover workflow triggers, OIDC, Key Vault, state keys, plan sanitization, apply gating, and Terraform source contracts. Terraform 1.16.6 format, readonly provider initialization, validation, and all 11 Terraform tests pass on Linux amd64. Same-repository pull-request plan jobs now skip when required Azure variables are absent; workflow-dispatched plans still require configuration. The AzureRM lockfile includes the Linux provider package checksum required by CI. `actionlint` is unavailable. GitHub environments/reviewer rules and Microsoft Entra OIDC federation/Key Vault permissions must be configured before privileged jobs can run.

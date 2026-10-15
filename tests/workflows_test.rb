@@ -33,6 +33,21 @@ class WorkflowsTest < Minitest::Test
     assert_match(/terraform-plan-/, plan.dig("environment", "name"))
   end
 
+  def test_pull_request_plan_requires_complete_azure_configuration
+    plan = @deployment.dig("jobs", "plan")
+
+    %w[
+      AZURE_PLAN_CLIENT_ID
+      AZURE_TENANT_ID
+      AZURE_SUBSCRIPTION_ID
+      AZURE_KEY_VAULT_NAME
+      TF_STATE_RESOURCE_GROUP
+    ].each do |variable|
+      assert_includes plan["if"], "vars.#{variable} != ''"
+    end
+    assert_includes plan["if"], "github.event_name == 'workflow_dispatch'"
+  end
+
   def test_apply_is_manual_main_only_and_protected
     triggers = trigger_config(@deployment)
     apply = @deployment.dig("jobs", "apply")
