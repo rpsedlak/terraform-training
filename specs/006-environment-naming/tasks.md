@@ -2,7 +2,7 @@
 
 **Related spec:** [spec.md](spec.md)  
 **Related plan:** [plan.md](plan.md)  
-**Status:** Not started
+**Status:** In Progress
 
 ## Specification
 
@@ -11,17 +11,17 @@
 
 ## Implementation
 
-- [ ] Add a central environment input and mapping for `d`, `t`, and `p`.
-- [ ] Apply the derived code consistently to named resources where Azure rules permit.
-- [ ] Preserve service-mandated names and document exceptions.
+- [x] Add a central environment input and mapping for `d`, `t`, and `p`.
+- [x] Apply the derived code consistently to named resources where Azure rules permit.
+- [x] Preserve service-mandated names and document exceptions.
 
 ## Verification
 
-- [ ] Verify development, testing, and production map to `d`, `t`, and `p`.
-- [ ] Verify unsupported environment values are rejected.
+- [x] Verify development, testing, and production map to `d`, `t`, and `p`.
+- [x] Verify unsupported environment values are rejected.
 - [ ] Verify planned names comply with Azure naming rules and preserve required names.
 - [ ] Record check results and evidence.
 
 ## Completion notes
 
-<Summarize what changed, checks run, and any remaining limitations.>
+Offline tests verify the development/testing/production codes and resource-name examples. Azure resource-specific name constraints still require review in a real plan. No deployment was run.

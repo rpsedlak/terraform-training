@@ -2,7 +2,7 @@
 
 **Related spec:** [spec.md](spec.md)  
 **Related plan:** [plan.md](plan.md)  
-**Status:** Not started
+**Status:** In Progress
 
 ## Specification
 
@@ -13,20 +13,20 @@
 
 ## Implementation
 
-- [ ] Create one VM and NIC in the servers subnet from feature 003.
-- [ ] Set `Standard_B2s_v2` as the default and validate B-series overrides with at least two vCPUs.
-- [ ] Configure the OS disk as Premium SSD P10 and create no data disk.
-- [ ] Ensure no public IP is associated with the VM or NIC.
-- [ ] Apply feature 006 naming rules where permitted.
+- [x] Create one Windows VM and NIC in the servers subnet from feature 003.
+- [x] Set `Standard_B2s_v2` as the default and validate B-series overrides with at least two vCPUs.
+- [x] Configure the OS disk as Premium SSD P10 and create no data disk.
+- [x] Ensure no public IP is associated with the VM or NIC; allow RDP only from Bastion subnet.
+- [x] Apply feature 006 naming rules where permitted.
 
 ## Verification
 
-- [ ] Run Terraform formatting and validation.
+- [x] Run Terraform formatting, validation, and offline mock-provider tests.
 - [ ] Verify exactly one VM is planned in the servers subnet.
 - [ ] Verify the default and override constraints for VM size.
-- [ ] Verify the approved Premium disk configuration and no public IP association.
+- [x] Verify the approved P10 OS disk, RDP NSG allow/deny rules, and no NIC public IP in offline tests.
 - [ ] Review the plan without applying it and record evidence.
 
 ## Completion notes
 
-<Summarize what changed, checks run, and any remaining limitations.>
+Terraform formatting, validation, and offline tests for size constraints, image, P10 OS disk, RDP rules, and NIC public-IP absence pass. East US image/SKU availability and an Azure plan remain unverified. No apply was run.
