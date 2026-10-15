@@ -44,7 +44,7 @@ jobs:
       vars.AZURE_SUBSCRIPTION_ID != '' && vars.AZURE_KEY_VAULT_NAME != '' &&
       vars.TF_STATE_RESOURCE_GROUP != '') ||
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, terraform-training]
     environment:
       name: terraform-plan-${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}
     permissions:
@@ -146,7 +146,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     needs:
       - plan
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, terraform-training]
     environment:
       name: terraform-apply-${{ inputs.environment }}
     permissions:
