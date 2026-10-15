@@ -37,3 +37,5 @@
 ## Completion notes
 
 Terraform 1.16.6 formatting, backend-free initialization, validation, 13 offline mock-provider tests, and 5 source-contract tests pass. An authorized GitHub Actions apply was attempted after development plan approval. Azure rejected the VM because East US `standardBsv2Family` quota is 0; nine other resources remain tracked in remote state. ADR-016 and the workflow input now allow `Standard_D2ds_v6` for development. No cleanup was run.
+
+The development retry was dispatched from merged commit `f12971d` in [workflow run 38679086977](https://github.com/rpsedlak/terraform-training/actions/runs/38679086977). Its successful plan shows only `azurerm_windows_virtual_machine.server` being created with `Standard_D2ds_v6`: 1 to add, 0 to change, 0 to destroy. Read-only Azure checks confirmed the existing VNet `10.20.0.0/22`, Bastion subnet `10.20.0.0/26`, servers subnet `10.20.1.0/24`, Basic Bastion in `Succeeded` state, and server NIC at `10.20.1.4` without a public IP. Apply is awaiting the required `rpsedlak` approval on `terraform-apply-development`; the retry has not yet created the VM.
