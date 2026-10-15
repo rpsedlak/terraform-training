@@ -1,0 +1,224 @@
+name: Terraform Plan and Apply
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Azure environment to plan and deploy
+        required: true
+        type: choice
+        options:
+          - development
+          - testing
+          - production
+
+permissions:
+  contents: read
+
+env:
+  TF_STATE_STORAGE_ACCOUNT: dizzyterraform20261014
+  TF_STATE_CONTAINER: tfstate
+
+concurrency:
+  group: terraform-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Create sanitized plan summary
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
+      vars.AZURE_PLAN_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' &&
+      vars.AZURE_SUBSCRIPTION_ID != '' && vars.AZURE_KEY_VAULT_NAME != '' &&
+      vars.TF_STATE_RESOURCE_GROUP != '') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment:
+      name: terraform-plan-${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      change_summary: ${{ steps.plan.outputs.change_summary }}
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_PLAN_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_environment: ${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      TF_IN_AUTOMATION: "1"
+      TF_INPUT: "0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+
+      - name: Authenticate to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_PLAN_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read VM administrator credentials from Key Vault
+        id: vm_admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminpassword --query value --output tsv)"
+          if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
+            echo "Required VM credentials are missing or invalid in Key Vault."
+            exit 1
+          fi
+          echo "::add-mask::$username"
+          echo "::add-mask::$password"
+          printf 'username=%s\n' "$username" >> "$GITHUB_OUTPUT"
+          printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize remote state
+        run: |
+          TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
+          terraform -chdir=infra init -input=false \
+            -backend-config="resource_group_name=${TF_STATE_RESOURCE_GROUP}" \
+            -backend-config="storage_account_name=${TF_STATE_STORAGE_ACCOUNT}" \
+            -backend-config="container_name=${TF_STATE_CONTAINER}" \
+            -backend-config="key=${TF_STATE_KEY}" \
+            -backend-config="use_oidc=true" \
+            -backend-config="use_azuread_auth=true" \
+            -backend-config="client_id=${ARM_CLIENT_ID}" \
+            -backend-config="tenant_id=${ARM_TENANT_ID}" \
+            -backend-config="subscription_id=${ARM_SUBSCRIPTION_ID}"
+
+      - name: Generate plan and sanitized summary
+        id: plan
+        shell: bash
+        env:
+          TF_VAR_vm_admin_username: ${{ steps.vm_admin.outputs.username }}
+          TF_VAR_vm_admin_password: ${{ steps.vm_admin.outputs.password }}
+        run: |
+          set -euo pipefail
+          plan_file="${RUNNER_TEMP}/terraform.tfplan"
+          plan_json="${RUNNER_TEMP}/terraform-plan.json"
+          trap 'rm -f "$plan_file" "$plan_json"' EXIT
+
+          terraform -chdir=infra plan -input=false -no-color -lock-timeout=5m -out="$plan_file"
+          terraform -chdir=infra show -json "$plan_file" > "$plan_json"
+
+          summary="$(jq -c '[.resource_changes[]? | select(.change.actions != ["no-op"]) | . as $resource | ((($resource.change.before // {}) | keys) + (($resource.change.after // {}) | keys) | unique) as $keys | {address: $resource.address, actions: $resource.change.actions, changed_attributes: [$keys[] | select(($resource.change.before // {})[.] != ($resource.change.after // {})[.])]}] | sort_by(.address)' "$plan_json")"
+          echo "change_summary=${summary}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Terraform plan summary (${TF_VAR_environment})"
+            echo
+            if [[ "${summary}" == "[]" ]]; then
+              echo "No resource changes."
+            else
+              jq -r 'if length == 0 then "No resource changes." else .[] | "- `\(.address)`: `\(.actions | join(", "))`" end' <<< "${summary}"
+            fi
+            echo
+            echo "Only changed attribute names are shown; attribute values are intentionally omitted."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: Apply approved plan
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    environment:
+      name: terraform-apply-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_APPLY_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_environment: ${{ inputs.environment }}
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      EXPECTED_PLAN_SUMMARY: ${{ needs.plan.outputs.change_summary }}
+      TF_IN_AUTOMATION: "1"
+      TF_INPUT: "0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+
+      - name: Authenticate to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_APPLY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read VM administrator credentials from Key Vault
+        id: vm_admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminpassword --query value --output tsv)"
+          if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
+            echo "Required VM credentials are missing or invalid in Key Vault."
+            exit 1
+          fi
+          echo "::add-mask::$username"
+          echo "::add-mask::$password"
+          printf 'username=%s\n' "$username" >> "$GITHUB_OUTPUT"
+          printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize remote state
+        run: |
+          TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
+          terraform -chdir=infra init -input=false \
+            -backend-config="resource_group_name=${TF_STATE_RESOURCE_GROUP}" \
+            -backend-config="storage_account_name=${TF_STATE_STORAGE_ACCOUNT}" \
+            -backend-config="container_name=${TF_STATE_CONTAINER}" \
+            -backend-config="key=${TF_STATE_KEY}" \
+            -backend-config="use_oidc=true" \
+            -backend-config="use_azuread_auth=true" \
+            -backend-config="client_id=${ARM_CLIENT_ID}" \
+            -backend-config="tenant_id=${ARM_TENANT_ID}" \
+            -backend-config="subscription_id=${ARM_SUBSCRIPTION_ID}"
+
+      - name: Replan, compare summary, and apply
+        shell: bash
+        env:
+          TF_VAR_vm_admin_username: ${{ steps.vm_admin.outputs.username }}
+          TF_VAR_vm_admin_password: ${{ steps.vm_admin.outputs.password }}
+        run: |
+          set -euo pipefail
+          plan_file="${RUNNER_TEMP}/terraform.tfplan"
+          plan_json="${RUNNER_TEMP}/terraform-plan.json"
+          trap 'rm -f "$plan_file" "$plan_json"' EXIT
+
+          terraform -chdir=infra plan -input=false -no-color -lock-timeout=5m -out="$plan_file"
+          terraform -chdir=infra show -json "$plan_file" > "$plan_json"
+          current_summary="$(jq -c '[.resource_changes[]? | select(.change.actions != ["no-op"]) | . as $resource | ((($resource.change.before // {}) | keys) + (($resource.change.after // {}) | keys) | unique) as $keys | {address: $resource.address, actions: $resource.change.actions, changed_attributes: [$keys[] | select(($resource.change.before // {})[.] != ($resource.change.after // {})[.])]}] | sort_by(.address)' "$plan_json")"
+
+          if [[ "${current_summary}" != "${EXPECTED_PLAN_SUMMARY}" ]]; then
+            echo "The plan changed after review. No resources were applied. Run a new plan and review it before retrying."
+            exit 1
+          fi
+
+          terraform -chdir=infra apply -input=false -no-color -lock-timeout=5m "$plan_file"

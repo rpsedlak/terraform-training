@@ -12,7 +12,7 @@ The environment needs a reproducible Terraform toolchain and shared remote state
 - Use Terraform 1.16.6, the latest stable release on 2026-10-14; pin the CLI version in the repository and workflow.
 - Use one root module under `infra/`, with resource declarations grouped by feature. Do not introduce child modules until there is a concrete reuse requirement.
 - Use AzureRM provider major version 4 and commit `.terraform.lock.hcl` to pin the selected provider build.
-- Store state in an Azure Storage blob container using the `azurerm` backend, Microsoft Entra ID authentication, and OIDC in CI. Use a separate state key per environment.
+- Store state in the Azure Storage account `dizzyterraform20261014` and blob container `tfstate`, using the `azurerm` backend, Microsoft Entra ID authentication, and OIDC in CI. Use `tftraining-<environment>.tfstate` as the blob key, with a distinct key for each environment.
 - Provision the state storage account and container separately before initializing the environment root module. Grant the deployment identity only the required storage data-plane role.
 
 ## Consequences

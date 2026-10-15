@@ -19,7 +19,6 @@ Keep pipeline configuration separate from infrastructure configuration. GitHub A
 
 ## Security and operations
 
-- Credentials and permissions: use the selected CI platform's secure identity mechanism; never commit credentials.
 - Credentials and permissions: expose credentials only to trusted apply jobs and use the selected platform's secure identity mechanism.
 - Plan output: publish only a sanitized summary; do not print raw plan values in workflow logs.
 - Apply: require approval from designated reviewers in the protected environment and restrict deployment branches to `main`.
