@@ -6,7 +6,7 @@
 
 ## Technical approach
 
-Keep pipeline configuration separate from infrastructure configuration. GitHub Actions runs formatting and validation on pull requests, while privileged plan and apply jobs use GitHub protected environments and Azure OIDC. Fork pull requests receive no Azure credentials. Reviewers inspect a sanitized plan summary before approving apply from `main`.
+Keep pipeline configuration separate from infrastructure configuration. GitHub Actions runs formatting and validation on pull requests, while privileged plan and apply jobs use GitHub protected environments and Azure OIDC. Fork pull requests receive no Azure credentials. Manual dispatch passes the selected environment and VM size to both plan and apply; Terraform accepts `Standard_D2ds_v6` only for development under ADR-016. Reviewers inspect a sanitized plan summary before approving apply from `main`.
 
 ## Decisions
 

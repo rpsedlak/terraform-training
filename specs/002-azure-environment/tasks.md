@@ -22,13 +22,13 @@
 - [x] Trace ADR-001 through ADR-014 into the environment requirements and plan.
 - [x] Verify local Markdown links resolve and `git diff --check` passes for the specification changes.
 - [x] Run `terraform fmt -check`, `terraform init -backend=false`, and `terraform validate` with Terraform 1.16.6.
-- [x] Run 11 offline mock-provider tests for environment mapping, resource relationships, and VM input constraints.
+- [x] Run 13 offline mock-provider tests for environment mapping, resource relationships, and VM input constraints.
 - [x] Run 5 source-contract tests for resource inventory, gateway exclusion, private NIC, password sensitivity, and disk scope.
 - [x] Run source-contract tests for resource inventory, gateway exclusion, private NIC, and password sensitivity.
 - [ ] Verify the plan contains one `/22` VNet and the required subnet layout, including the `/24` servers subnet.
 - [ ] Verify no gateway is deployed and Basic Bastion is associated with `AzureBastionSubnet`.
 - [ ] Verify exactly one VM is in the servers subnet and no public IP is attached to its NIC.
-- [x] Verify `Standard_B2s_v2` is the default and invalid environment/VM size inputs are rejected by offline tests.
+- [x] Verify `Standard_B2s_v2` default, B-series overrides, development-only `Standard_D2ds_v6`, and invalid environment/VM size inputs in offline tests.
 - [x] Verify the configured OS disk uses Premium SSD P10 and the server NIC has no public IP in offline tests.
 - [x] Verify environment codes and resource-name examples in offline tests.
 - [ ] Review the plan against every acceptance criterion; do not apply without explicit authorization.
@@ -36,4 +36,4 @@
 
 ## Completion notes
 
-Terraform 1.16.6 formatting, backend-free initialization, validation, 11 offline mock-provider tests, and 5 source-contract tests pass. An Azure-authenticated plan was not run because this environment has no Azure CLI login and the state storage bootstrap is external. No apply was run.
+Terraform 1.16.6 formatting, backend-free initialization, validation, 13 offline mock-provider tests, and 5 source-contract tests pass. An authorized GitHub Actions apply was attempted after development plan approval. Azure rejected the VM because East US `standardBsv2Family` quota is 0; nine other resources remain tracked in remote state. ADR-016 and the workflow input now allow `Standard_D2ds_v6` for development. No cleanup was run.

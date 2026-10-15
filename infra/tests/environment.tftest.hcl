@@ -223,6 +223,35 @@ run "accept_valid_b_series_override" {
   }
 }
 
+run "accept_development_d2ds_v6_quota_exception" {
+  command = plan
+
+  variables {
+    environment       = "development"
+    vm_size           = "Standard_D2ds_v6"
+    vm_admin_username = "vmadmin"
+    vm_admin_password = "example-only-password-123"
+  }
+
+  assert {
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
+    error_message = "the approved D2ds_v6 quota exception must be accepted in development."
+  }
+}
+
+run "reject_development_d2ds_v6_in_testing" {
+  command = plan
+
+  variables {
+    environment       = "testing"
+    vm_size           = "Standard_D2ds_v6"
+    vm_admin_username = "vmadmin"
+    vm_admin_password = "example-only-password-123"
+  }
+
+  expect_failures = [var.vm_size]
+}
+
 run "reject_non_b_series_vm" {
   command = plan
 

@@ -74,6 +74,8 @@ ruby tests/terraform_source_test.rb
 
 For a local plan, authenticate with Azure CLI and retrieve the VM username and password from Key Vault secrets `adminuser` and `adminpassword`. Supply them through Terraform input variables without printing or saving their values. Do not run `terraform apply` without explicit authorization.
 
+For a development deployment, select `development` and `Standard_D2ds_v6` in the protected manual workflow dispatch to use the approved East US Bsv2-quota exception. The Terraform default remains `Standard_B2s_v2`; other overrides must satisfy the VM-size validation in the approved server VM spec.
+
 ## Azure and GitHub Setup
 
 The Azure Blob state resource group and container must exist before remote `terraform init`; this repository does not bootstrap them. The state storage account is `dizzyterraform20261014` and the container is `tfstate`. State keys are `tftraining-development.tfstate`, `tftraining-testing.tfstate`, and `tftraining-production.tfstate`. GitHub Actions reads the resource group name from `TF_STATE_RESOURCE_GROUP`.

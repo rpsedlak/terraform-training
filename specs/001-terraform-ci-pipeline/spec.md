@@ -32,6 +32,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - GitHub Actions runs formatting and validation on pull requests. Fork pull requests receive no Azure OIDC token or deployment credentials.
 - A privileged plan is generated only in a protected GitHub environment; authorized reviewers can inspect a sanitized plan summary before apply.
 - Apply runs only from `main` after required reviewers approve the protected GitHub environment.
+- Manual deployment dispatch accepts a VM-size input and passes it to both plan and apply; Terraform validates the environment/size combination.
 - Azure authentication uses GitHub OIDC and Microsoft Entra workload identity federation, as decided in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
 - Backend identifiers are supplied as non-secret configuration; credentials and Terraform state are not committed to source control.
 - The pipeline reports the result of each required check.
@@ -43,6 +44,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - [ ] A privileged plan is reviewable by authorized reviewers before apply, without raw sensitive values in logs.
 - [ ] Fork pull requests cannot obtain Azure OIDC tokens or deployment credentials.
 - [ ] Apply is blocked unless it runs from `main` and the protected environment approval succeeds.
+- [ ] The manually dispatched VM size is used consistently for plan and apply; invalid environment/size combinations fail validation.
 - [ ] CI does not commit credentials or state files or expose sensitive plan output to untrusted users.
 
 ## Constraints and assumptions
