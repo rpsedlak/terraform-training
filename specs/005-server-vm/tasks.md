@@ -25,7 +25,7 @@
 
 - [x] Run Terraform formatting, validation, and offline mock-provider tests.
 - [ ] Verify exactly one VM is planned in the servers subnet.
-- [ ] Verify the default and override constraints for VM size.
+- [x] Verify the default, valid B-series override, and invalid size rejection in offline Terraform tests.
 - [x] Verify the approved P10 OS disk, RDP NSG allow/deny rules, and no NIC public IP in offline tests.
 - [x] Verify the workflow reads `adminuser` and `adminpassword` after Azure OIDC login and masks both values.
 - [ ] Verify plan/apply identities have only the required Key Vault secret-read access and Terraform state permissions.
@@ -33,4 +33,4 @@
 
 ## Completion notes
 
-Terraform formatting, validation, offline resource tests, and workflow YAML parsing pass. Key Vault access, Azure plan verification, and East US image/SKU availability remain unverified because the Azure identity and Key Vault are not configured in this workspace. No apply was run.
+Terraform formatting, validation, 11 offline Terraform tests, 5 source-contract tests, and 9 workflow tests pass. Key Vault access, Azure plan verification, and East US image/SKU availability remain unverified because the Azure identity and Key Vault are not configured in this workspace. No apply was run.

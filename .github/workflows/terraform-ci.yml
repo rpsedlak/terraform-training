@@ -36,3 +36,9 @@ jobs:
 
       - name: Test environment and VM size constraints
         run: terraform -chdir=infra test -no-color
+
+      - name: Test GitHub Actions workflow protections
+        run: ruby tests/workflows_test.rb
+
+      - name: Test Terraform source contracts
+        run: ruby tests/terraform_source_test.rb

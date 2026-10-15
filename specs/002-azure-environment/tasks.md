@@ -22,7 +22,9 @@
 - [x] Trace ADR-001 through ADR-014 into the environment requirements and plan.
 - [x] Verify local Markdown links resolve and `git diff --check` passes for the specification changes.
 - [x] Run `terraform fmt -check`, `terraform init -backend=false`, and `terraform validate` with Terraform 1.16.6.
-- [x] Run offline mock-provider tests for environment mapping and VM input constraints.
+- [x] Run 11 offline mock-provider tests for environment mapping, resource relationships, and VM input constraints.
+- [x] Run 5 source-contract tests for resource inventory, gateway exclusion, private NIC, password sensitivity, and disk scope.
+- [x] Run source-contract tests for resource inventory, gateway exclusion, private NIC, and password sensitivity.
 - [ ] Verify the plan contains one `/22` VNet and the required subnet layout, including the `/24` servers subnet.
 - [ ] Verify no gateway is deployed and Basic Bastion is associated with `AzureBastionSubnet`.
 - [ ] Verify exactly one VM is in the servers subnet and no public IP is attached to its NIC.
@@ -34,4 +36,4 @@
 
 ## Completion notes
 
-Terraform 1.16.6 formatting, backend-free initialization, validation, and all seven offline mock-provider tests pass. An Azure-authenticated plan was not run because this environment has no Azure CLI login and the state storage bootstrap is external. No apply was run.
+Terraform 1.16.6 formatting, backend-free initialization, validation, 11 offline mock-provider tests, and 5 source-contract tests pass. An Azure-authenticated plan was not run because this environment has no Azure CLI login and the state storage bootstrap is external. No apply was run.

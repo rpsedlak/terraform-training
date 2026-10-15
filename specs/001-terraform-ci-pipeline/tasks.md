@@ -28,8 +28,9 @@
 - [ ] Verify untrusted changes cannot access deployment credentials or sensitive plan output.
 - [ ] Verify apply is blocked until the protected approval is granted.
 - [x] Parse both workflow YAML files locally; `actionlint` is not installed.
+- [x] Test workflow trigger, OIDC, Key Vault, sanitization, and apply-gate contracts with Ruby tests.
 - [ ] Confirm all acceptance criteria in `spec.md` and record evidence.
 
 ## Completion notes
 
-Both workflow YAML files parse locally. `actionlint` is unavailable, and no GitHub Actions run was triggered. GitHub environments/reviewer rules and Microsoft Entra OIDC federation/role assignments must be configured before privileged jobs can run.
+Both workflow YAML files parse locally, and 9 Ruby tests cover workflow triggers, OIDC, Key Vault, state keys, plan sanitization, and apply gating. `actionlint` is unavailable, and no GitHub Actions run was triggered. GitHub environments/reviewer rules and Microsoft Entra OIDC federation/Key Vault permissions must be configured before privileged jobs can run.

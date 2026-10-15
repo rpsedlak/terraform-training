@@ -68,6 +68,8 @@ terraform -chdir=infra fmt -check -recursive
 terraform -chdir=infra init -backend=false -input=false -lockfile=readonly
 terraform -chdir=infra validate
 terraform -chdir=infra test
+ruby tests/workflows_test.rb
+ruby tests/terraform_source_test.rb
 ```
 
 For a local plan, authenticate with Azure CLI and retrieve the VM username and password from Key Vault secrets `adminuser` and `adminpassword`. Supply them through Terraform input variables without printing or saving their values. Do not run `terraform apply` without explicit authorization.

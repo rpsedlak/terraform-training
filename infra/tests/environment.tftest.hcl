@@ -1,5 +1,45 @@
 mock_provider "azurerm" {}
 
+override_resource {
+  target = azurerm_subnet.bastion
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/AzureBastionSubnet"
+  }
+  override_during = plan
+}
+
+override_resource {
+  target = azurerm_subnet.servers
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/snet-servers"
+  }
+  override_during = plan
+}
+
+override_resource {
+  target = azurerm_public_ip.bastion
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/publicIPAddresses/test-bastion-ip"
+  }
+  override_during = plan
+}
+
+override_resource {
+  target = azurerm_network_security_group.servers
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/networkSecurityGroups/test-server-nsg"
+  }
+  override_during = plan
+}
+
+override_resource {
+  target = azurerm_network_interface.server
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/networkInterfaces/test-server-nic"
+  }
+  override_during = plan
+}
+
 run "development_names" {
   command = plan
 
@@ -17,6 +57,18 @@ run "development_names" {
   assert {
     condition     = azurerm_resource_group.environment.name == "rg-terraform-training-d-eastus-001"
     error_message = "development resource names must use the approved naming pattern."
+  }
+
+  assert {
+    condition = (
+      local.names.vnet == "vnet-terraform-training-d-eastus-001" &&
+      local.names.bastion == "bas-terraform-training-d-eastus-001" &&
+      local.names.bastion_ip == "pip-terraform-training-d-eastus-001" &&
+      local.names.server_nsg == "nsg-terraform-training-d-eastus-001" &&
+      local.names.server_nic == "nic-terraform-training-d-eastus-001" &&
+      local.names.server_os_disk == "disk-terraform-training-d-eastus-001"
+    )
+    error_message = "all Azure resource names must follow the approved environment pattern."
   }
 
   assert {
@@ -43,6 +95,14 @@ run "development_names" {
   }
 
   assert {
+    condition = (
+      azurerm_bastion_host.environment.ip_configuration[0].subnet_id == azurerm_subnet.bastion.id &&
+      azurerm_bastion_host.environment.ip_configuration[0].public_ip_address_id == azurerm_public_ip.bastion.id
+    )
+    error_message = "Bastion must be attached to AzureBastionSubnet and its Standard public IP."
+  }
+
+  assert {
     condition     = azurerm_windows_virtual_machine.server.size == "Standard_B2s_v2"
     error_message = "the VM must default to Standard_B2s_v2."
   }
@@ -65,6 +125,20 @@ run "development_names" {
   assert {
     condition     = anytrue([for rule in azurerm_network_security_group.servers.security_rule : rule.source_address_prefix == "*" && rule.destination_port_range == "3389" && rule.access == "Deny"])
     error_message = "RDP from every other source must be denied."
+  }
+
+  assert {
+    condition = (
+      azurerm_network_interface.server.ip_configuration[0].subnet_id == azurerm_subnet.servers.id &&
+      azurerm_subnet_network_security_group_association.servers.subnet_id == azurerm_subnet.servers.id &&
+      azurerm_subnet_network_security_group_association.servers.network_security_group_id == azurerm_network_security_group.servers.id
+    )
+    error_message = "the server NIC and RDP security group must be attached to the servers subnet."
+  }
+
+  assert {
+    condition     = contains(azurerm_windows_virtual_machine.server.network_interface_ids, azurerm_network_interface.server.id)
+    error_message = "the server VM must use the private server NIC."
   }
 }
 
@@ -133,6 +207,22 @@ run "reject_undersized_vm" {
   expect_failures = [var.vm_size]
 }
 
+run "accept_valid_b_series_override" {
+  command = plan
+
+  variables {
+    environment       = "development"
+    vm_size           = "Standard_B4ms"
+    vm_admin_username = "vmadmin"
+    vm_admin_password = "example-only-password-123"
+  }
+
+  assert {
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_B4ms"
+    error_message = "a B-series override with at least two vCPUs must be accepted."
+  }
+}
+
 run "reject_non_b_series_vm" {
   command = plan
 
@@ -144,6 +234,42 @@ run "reject_non_b_series_vm" {
   }
 
   expect_failures = [var.vm_size]
+}
+
+run "reject_short_admin_password" {
+  command = plan
+
+  variables {
+    environment       = "development"
+    vm_admin_username = "vmadmin"
+    vm_admin_password = "short"
+  }
+
+  expect_failures = [var.vm_admin_password]
+}
+
+run "reject_empty_admin_username" {
+  command = plan
+
+  variables {
+    environment       = "development"
+    vm_admin_username = ""
+    vm_admin_password = "example-only-password-123"
+  }
+
+  expect_failures = [var.vm_admin_username]
+}
+
+run "reject_long_admin_username" {
+  command = plan
+
+  variables {
+    environment       = "development"
+    vm_admin_username = "thisusernameisover20chars"
+    vm_admin_password = "example-only-password-123"
+  }
+
+  expect_failures = [var.vm_admin_username]
 }
 
 run "server_nic_has_no_public_ip" {
