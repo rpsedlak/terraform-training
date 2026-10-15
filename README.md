@@ -52,4 +52,4 @@ specs/
 		tasks.md
 ```
 
-The Azure environment is specified by separate network, Bastion, server VM, and naming features, with `specs/002-azure-environment/` tracking their integration. Infrastructure and pipeline implementation remain out of scope until their specifications are approved.
+The Azure environment is specified by separate network, Bastion, server VM, and naming features, with `specs/002-azure-environment/` tracking their integration. All feature specifications are approved; implementation must follow their tasks, and no real deployment may run without explicit authorization.

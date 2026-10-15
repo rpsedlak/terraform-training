@@ -1,6 +1,6 @@
 # Feature: Environment Naming
 
-**Status:** Draft  
+**Status:** Approved
 **Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
@@ -12,10 +12,10 @@ Resources are deployed into development, testing, and production environments. T
 
 - Use the one-letter codes accepted in [ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md).
 - Derive the code from the selected environment consistently across Terraform resources.
+- Follow the Azure Cloud Adoption Framework naming components in [ADR-014](../001-terraform-ci-pipeline/decisions/ADR-014-azure-resource-naming.md).
 
 ## Non-goals
 
-- Defining all resource-name components, separators, or code position before a naming pattern is approved.
 - Changing Azure service-mandated resource or subnet names.
 
 ## User stories
@@ -25,24 +25,26 @@ Resources are deployed into development, testing, and production environments. T
 ## Requirements
 
 - Use `d` for development, `t` for testing, and `p` for production.
+- Use `<resource-abbreviation>-terraform-training-<environment-code>-eastus-<instance>`, with `001` as the initial instance identifier, wherever Azure rules permit.
+- Select the environment through one `environment` input with values `development`, `testing`, or `production`, then derive the corresponding code.
 - Include the selected environment code in resource names wherever Azure naming rules permit.
 - Derive the code from one selected environment configuration; do not scatter inconsistent literals across resource declarations.
-- Preserve service-mandated names such as `GatewaySubnet` and `AzureBastionSubnet`.
+- Preserve service-mandated names such as `AzureBastionSubnet`.
 
 ## Acceptance criteria
 
 - [ ] Selecting development derives the code `d`; testing derives `t`; production derives `p`.
+- [ ] The `environment` input accepts only `development`, `testing`, or `production`; other values are rejected.
 - [ ] Terraform resource names include the selected code wherever permitted by Azure naming rules.
 - [ ] Service-mandated names remain unchanged and valid.
-- [ ] Invalid environment selections are rejected.
+- [ ] Resource names use the specified component order and conform to Azure-specific character, length, and uniqueness rules.
 
 ## Constraints and assumptions
 
 - The environment code mapping is accepted in [ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md).
+- The component order is accepted in [ADR-014](../001-terraform-ci-pipeline/decisions/ADR-014-azure-resource-naming.md).
 - This naming feature is consumed by the network, Bastion, and server VM features.
 
 ## Open questions
 
-- [ ] What is the complete resource naming pattern, including code position and separators?
-- [ ] Which resource types have Azure-specific naming constraints that need exceptions?
-- [ ] What parameter should select the environment in local and CI workflows?
+None. The resource naming pattern and environment selector are decided in ADR-009 and ADR-014.

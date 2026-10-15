@@ -1,6 +1,6 @@
 # Feature: Azure Bastion
 
-**Status:** Draft  
+**Status:** Approved
 **Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
@@ -10,7 +10,7 @@ The Azure environment requires Azure Bastion for private connectivity within the
 
 ## Goals
 
-- Deploy Azure Bastion into the `AzureBastionSubnet` defined by feature [003 Network Foundation](../003-network-foundation/spec.md).
+- Deploy Azure Bastion Basic in East US into the `AzureBastionSubnet` defined by feature [003 Network Foundation](../003-network-foundation/spec.md).
 - Keep Bastion deployment independently reviewable while integrating it into the environment plan.
 
 ## Non-goals
@@ -26,13 +26,15 @@ The Azure environment requires Azure Bastion for private connectivity within the
 
 - Deploy the Azure Bastion service, as decided in [ADR-004](../001-terraform-ci-pipeline/decisions/ADR-004-azure-bastion.md).
 - Place the Bastion resource in the `AzureBastionSubnet` in the VNet from feature 003.
-- Keep Bastion SKU and public IP configuration explicit and secure; these choices remain open until approved.
+- Deploy the Basic SKU, the lowest-cost dedicated SKU available in East US; Developer is not available in East US. See [ADR-004](../001-terraform-ci-pipeline/decisions/ADR-004-azure-bastion.md).
+- Use a Standard SKU static IPv4 public IP for Bastion. This does not add a public IP to the server VM.
 
 ## Acceptance criteria
 
 - [ ] The Terraform plan creates Azure Bastion in the VNet from feature 003.
 - [ ] Azure Bastion is associated with the designated `AzureBastionSubnet`.
-- [ ] The Bastion SKU and public IP configuration match approved decisions and satisfy Azure requirements.
+- [ ] The Bastion uses the Basic SKU and a Standard static IPv4 public IP.
+- [ ] `AzureBastionSubnet` is `10.20.0.0/26` and meets Azure requirements.
 - [ ] The plan does not attach a public IP to the server VM as covered by feature 005.
 - [ ] The Bastion plan is reviewable without applying it.
 
@@ -44,6 +46,4 @@ The Azure environment requires Azure Bastion for private connectivity within the
 
 ## Open questions
 
-- [ ] Which Azure Bastion SKU should be used?
-- [ ] What public IP SKU, allocation, and naming configuration should be used?
-- [ ] What subnet CIDR should be allocated to `AzureBastionSubnet` in feature 003?
+None. SKU, region, public IP configuration, and subnet allocation are decided in ADR-004 and feature 003.

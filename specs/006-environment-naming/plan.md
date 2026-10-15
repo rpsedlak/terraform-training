@@ -1,12 +1,12 @@
 # Plan: Environment Naming
 
 **Related spec:** [spec.md](spec.md)  
-**Status:** Draft  
+**Status:** Approved
 **Last updated:** 2026-10-14
 
 ## Technical approach
 
-Use one environment selection input and derive the corresponding single-letter code from a central mapping. Compose that code into names for resources where permitted. Preserve Azure-required names. Finalize the naming pattern and input interface before implementation.
+Use one `environment` input (`development`, `testing`, or `production`) and derive `d`, `t`, or `p` from a central mapping. Compose names using `<resource-abbreviation>-terraform-training-<environment-code>-eastus-<instance>` where permitted. Preserve Azure-required names and adapt for resource-specific constraints.
 
 ## Decisions
 
@@ -15,7 +15,7 @@ Use one environment selection input and derive the corresponding single-letter c
 | Development code | `d` ([ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md)) | Accepted mapping. |
 | Testing code | `t` ([ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md)) | Accepted mapping. |
 | Production code | `p` ([ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md)) | Accepted mapping. |
-| Full resource name pattern | Unresolved | Code position and separators are not yet decided. |
+| Resource name pattern | Resource abbreviation, workload, environment code, region, instance ([ADR-014](../001-terraform-ci-pipeline/decisions/ADR-014-azure-resource-naming.md)) | Follows Microsoft CAF guidance while retaining the required one-letter code. |
 
 ## Security and operations
 
@@ -26,7 +26,7 @@ Use one environment selection input and derive the corresponding single-letter c
 
 ## Validation
 
-- Test that all three environment selections derive the correct code.
+- Test that the environment input accepts only the three approved values and derives the correct code.
 - Test that invalid environment values are rejected.
 - Inspect planned resource names for each environment and verify Azure constraints and reserved names.
 

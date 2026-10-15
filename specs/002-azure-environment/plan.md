@@ -1,43 +1,36 @@
 # Plan: Azure Environment
 
 **Related spec:** [spec.md](spec.md)  
-**Status:** Draft  
+**Status:** Approved
 **Last updated:** 2026-10-14
 
 ## Technical approach
 
-Integrate the network foundation (feature 003), Azure Bastion (feature 004), server VM (feature 005), and environment naming (feature 006) as one Terraform environment after blocking decisions are resolved. This feature owns shared provider, version, state, identity, and root-module integration choices. Keep CI orchestration in [feature 001](../001-terraform-ci-pipeline/plan.md).
+Integrate the approved network foundation (feature 003), Azure Bastion (feature 004), server VM (feature 005), and environment naming (feature 006) as one Terraform environment. This feature owns shared provider, version, state, identity, and root-module integration. Keep CI orchestration in [feature 001](../001-terraform-ci-pipeline/plan.md).
 
 ## Decisions
 
 | Decision | Choice | Rationale |
 | --- | --- | --- |
-| Cloud target | Microsoft Azure ([ADR-001](../001-terraform-ci-pipeline/decisions/ADR-001-azure-deployment.md)) | Approved deployment platform. |
-| Infrastructure as code | Terraform ([ADR-002](../001-terraform-ci-pipeline/decisions/ADR-002-terraform-deployment.md)) | Approved provisioning tool. |
-| Network topology | One `/22` VNet; gateway, Bastion, and `/24` servers subnets ([ADR-003](../001-terraform-ci-pipeline/decisions/ADR-003-azure-network-topology.md)) | Approved network layout. |
-| Bastion | Deploy in `AzureBastionSubnet` ([ADR-004](../001-terraform-ci-pipeline/decisions/ADR-004-azure-bastion.md)) | Approved access service. |
-| Server | Exactly one VM in the servers subnet ([ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md)) | Approved compute count and placement. |
-| VM size | Default `Standard_B2s_v2`; input override constrained to B-series with at least two vCPUs ([ADR-006](../001-terraform-ci-pipeline/decisions/ADR-006-b-series-vm-size.md)) | Approved default and minimum size constraint. |
-| VM disk | Premium managed disk ([ADR-007](../001-terraform-ci-pipeline/decisions/ADR-007-premium-managed-disk.md)) | Approved storage tier. |
-| Server public IP | None attached to the VM or its NIC ([ADR-008](../001-terraform-ci-pipeline/decisions/ADR-008-no-server-public-ip.md)) | Prevents direct public-IP access to the server. |
-| Environment code | `d`, `t`, or `p` for development, testing, or production ([ADR-009](../001-terraform-ci-pipeline/decisions/ADR-009-environment-naming-codes.md)) | Provides consistent environment identification. |
+| Deployment region | East US (`eastus`) ([ADR-011](../001-terraform-ci-pipeline/decisions/ADR-011-east-us-region.md)) | Selected Azure region. |
+| Terraform toolchain and state | Terraform 1.16.6, `infra/` root, Azure Blob backend, OIDC ([ADR-013](../001-terraform-ci-pipeline/decisions/ADR-013-terraform-toolchain-and-state.md)) | Reproducible and secure execution. |
+| Component integration | Features 003 through 006 | Maintains component ownership and avoids duplicate requirements. |
 
 ## Security and operations
 
 - Credentials and permissions: use an approved secure identity with least privilege; never commit credentials.
-- State and locking: choose a remote backend and locking before enabling shared applies.
+- State and locking: use the Azure Blob backend and OIDC defined in ADR-013; backend storage is bootstrapped separately.
 - Deployment approvals and rollback: use the protected approval flow specified by feature 001; do not apply without explicit authorization.
-- Cost and cleanup: document Azure costs, retention, and cleanup for the selected gateway, Bastion, VM, and disk SKUs before deployment.
+- Cost and cleanup: document Azure costs, retention, and cleanup for Bastion, the VM, and its disk before deployment.
 
 ## Validation
 
-- Run `terraform fmt -check` on the completed root module.
-- Run `terraform validate` with the selected Terraform version.
-- Review a Terraform plan and verify resource counts, subnet associations, VM size constraints, disk tier, public-IP absence, and environment naming against `spec.md`.
+- Run `terraform fmt -check` and `terraform validate` against `infra/` using the pinned version.
+- Review one combined Terraform plan against the acceptance criteria in features 003 through 006.
 - Do not run `terraform apply` as part of implementation or verification without explicit user authorization.
 
 ## Risks
 
-- CIDR allocation or undersized subnets can make gateway or Bastion deployment fail; resolve ranges and verify Azure requirements before implementation.
+- Incorrect or undersized subnet allocations can make Bastion deployment fail; verify ranges against current Azure requirements.
 - Azure resource availability and cost vary by region and SKU; verify selected choices before plan approval.
 - Terraform plans and state may expose sensitive values; restrict access and never commit them.

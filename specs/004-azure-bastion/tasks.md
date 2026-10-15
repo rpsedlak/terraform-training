@@ -6,9 +6,9 @@
 
 ## Specification
 
-- [ ] Select the Bastion SKU and verify regional availability and requirements.
-- [ ] Select the public IP configuration and document access controls.
-- [ ] Confirm the Bastion subnet allocation with feature 003.
+- [x] Select Basic as the lowest-cost dedicated Bastion SKU available in East US.
+- [x] Select Standard static IPv4 public IP and document the server-only no-public-IP scope.
+- [x] Confirm `AzureBastionSubnet` allocation `10.20.0.0/26` with feature 003.
 
 ## Implementation
 

@@ -6,9 +6,8 @@
 
 ## Specification
 
-- [ ] Approve the complete resource naming pattern, including code position and separators.
-- [ ] Document resource-specific Azure naming exceptions.
-- [ ] Decide the environment-selection parameter used by local and CI workflows.
+- [x] Approve the CAF component pattern and Azure naming exceptions (ADR-014).
+- [x] Select the `environment` input and its allowed values.
 
 ## Implementation
 

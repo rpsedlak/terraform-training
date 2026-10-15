@@ -1,36 +1,35 @@
 # Plan: Terraform CI Pipeline
 
 **Related spec:** [spec.md](spec.md)  
-**Status:** Draft  
+**Status:** Approved
 **Last updated:** 2026-10-14
 
 ## Technical approach
 
-Keep pipeline configuration separate from infrastructure configuration. Run formatting and validation against the root module defined in [002 Azure Environment](../002-azure-environment/spec.md), generate a reviewable plan for proposed changes, and place apply behind the selected CI platform's protected approval mechanism. Do not expose deployment credentials or sensitive plan output to untrusted changes.
+Keep pipeline configuration separate from infrastructure configuration. GitHub Actions runs formatting and validation on pull requests, while privileged plan and apply jobs use GitHub protected environments and Azure OIDC. Fork pull requests receive no Azure credentials. Reviewers inspect a sanitized plan summary before approving apply from `main`.
 
 ## Decisions
 
 | Decision | Choice | Rationale |
 | --- | --- | --- |
-| CI platform | Unresolved | Determines pipeline syntax, triggers, and approval controls. |
-| Protected apply approval | Unresolved | Must prevent apply from running on unreviewed changes. |
-| Plan output handling | Unresolved | Determines secure reviewer access and retention. |
-| Deployment identity | Unresolved | Must use least privilege and avoid long-lived repository secrets. |
-| Environment configuration | Follow [002 Azure Environment](../002-azure-environment/plan.md) | Keeps the pipeline aligned with the independently specified infrastructure. |
+| CI platform and approval | GitHub Actions with required reviewers on a protected environment ([ADR-012](decisions/ADR-012-github-actions-deployment.md)) | Provides the selected workflow and explicit apply gate. |
+| Azure authentication | OIDC and Microsoft Entra workload identity federation ([ADR-012](decisions/ADR-012-github-actions-deployment.md)) | Avoids long-lived credentials in repository secrets. |
+| Terraform and state | Pinned CLI and Azure Blob backend ([ADR-013](decisions/ADR-013-terraform-toolchain-and-state.md)) | Reproducible CLI and remote locked state. |
+| Environment configuration | Follow [002 Azure Environment](../002-azure-environment/plan.md) | Keeps the pipeline aligned with the approved infrastructure. |
 
 ## Security and operations
 
 - Credentials and permissions: use the selected CI platform's secure identity mechanism; never commit credentials.
 - Credentials and permissions: expose credentials only to trusted apply jobs and use the selected platform's secure identity mechanism.
-- Plan artifacts: restrict access and retention because Terraform plans may contain sensitive values.
-- Apply: require a protected, explicit approval before any apply job runs.
+- Plan output: publish only a sanitized summary; do not print raw plan values in workflow logs.
+- Apply: require approval from designated reviewers in the protected environment and restrict deployment branches to `main`.
 
 ## Validation
 
-- Verify formatting and validation checks execute against the root module in feature 002.
-- Verify a proposed change generates a reviewable plan without applying it.
-- Verify untrusted changes cannot access credentials or sensitive plan output.
-- Verify apply remains blocked until the protected approval is granted.
+- Verify pull-request formatting and validation target `infra/`.
+- Verify privileged plan output is sanitized and reviewable before apply.
+- Verify fork pull requests cannot obtain Azure OIDC tokens.
+- Verify apply requires `main` and protected-environment approval.
 
 ## Risks
 

@@ -1,23 +1,23 @@
 # Feature: Azure Network Foundation
 
-**Status:** Draft  
+**Status:** Approved
 **Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
 ## Problem
 
-The Azure environment needs a single, well-defined virtual network and subnet layout for its gateway, Bastion, and server resources.
+The Azure environment needs a single, well-defined virtual network and subnet layout for Bastion and server resources.
 
 ## Goals
 
-- Create the network topology accepted in [ADR-003](../001-terraform-ci-pipeline/decisions/ADR-003-azure-network-topology.md).
-- Reserve the required subnets for the Standard SKU virtual network gateway, Azure Bastion, and server VM.
+- Create the network topology in [ADR-003](../001-terraform-ci-pipeline/decisions/ADR-003-azure-network-topology.md), as superseded by [ADR-010](../001-terraform-ci-pipeline/decisions/ADR-010-no-virtual-network-gateway.md).
+- Reserve the required subnets for Azure Bastion and the server VM.
 
 ## Non-goals
 
 - Deploying the Azure Bastion service; see [004 Azure Bastion](../004-azure-bastion/spec.md).
 - Configuring the server VM; see [005 Server VM](../005-server-vm/spec.md).
-- Choosing CIDR ranges or gateway type before those decisions are approved.
+- Deploying a virtual network gateway; ADR-010 excludes it.
 
 ## User stories
 
@@ -26,30 +26,26 @@ The Azure environment needs a single, well-defined virtual network and subnet la
 ## Requirements
 
 - Target Azure and use Terraform, as decided in [ADR-001](../001-terraform-ci-pipeline/decisions/ADR-001-azure-deployment.md) and [ADR-002](../001-terraform-ci-pipeline/decisions/ADR-002-terraform-deployment.md).
-- Create exactly one virtual network with an address-space size of `/22`.
-- Include a `GatewaySubnet` for a Standard SKU virtual network gateway.
+- Deploy in East US (`eastus`), as decided in [ADR-011](../001-terraform-ci-pipeline/decisions/ADR-011-east-us-region.md).
+- Create exactly one virtual network with address space `10.20.0.0/22`.
 - Include an `AzureBastionSubnet` for Azure Bastion.
-- Include a dedicated servers subnet with an address-space size of `/24`.
-- Select non-overlapping subnet CIDRs that fit within the VNet and meet current Azure requirements.
+- Assign `10.20.0.0/26` to `AzureBastionSubnet` and `10.20.1.0/24` to the dedicated servers subnet.
+- Do not create a gateway subnet or virtual network gateway, as decided in ADR-010.
 
 ## Acceptance criteria
 
-- [ ] Terraform defines exactly one Azure virtual network with a `/22` address space.
-- [ ] The VNet contains `GatewaySubnet`, `AzureBastionSubnet`, and a dedicated servers subnet.
-- [ ] A Standard SKU virtual network gateway is associated with `GatewaySubnet`.
-- [ ] The servers subnet has a `/24` address space.
-- [ ] All subnet CIDRs are non-overlapping, fit within the VNet, and meet Azure requirements.
-- [ ] A plan shows the network foundation without applying it.
+- [ ] Terraform defines exactly one Azure virtual network with address space `10.20.0.0/22` in East US.
+- [ ] The VNet contains `AzureBastionSubnet` (`10.20.0.0/26`) and a dedicated servers subnet (`10.20.1.0/24`).
+- [ ] The subnet CIDRs do not overlap and fit within the VNet address space.
+- [ ] No `GatewaySubnet` or virtual network gateway is created.
+- [ ] The plan shows the network foundation without applying it.
 
 ## Constraints and assumptions
 
-- The topology is accepted in [ADR-003](../001-terraform-ci-pipeline/decisions/ADR-003-azure-network-topology.md).
+- The topology and CIDRs are accepted in [ADR-003](../001-terraform-ci-pipeline/decisions/ADR-003-azure-network-topology.md); ADR-010 removes the earlier gateway requirement.
 - The selected network will be used by features [004 Azure Bastion](../004-azure-bastion/spec.md) and [005 Server VM](../005-server-vm/spec.md).
 - Azure-required subnet names must remain unchanged.
 
 ## Open questions
 
-- [ ] Which VNet base CIDR and subnet CIDR ranges should be assigned?
-- [ ] What subnet sizes should be used for the gateway and Bastion, and do they meet current Azure requirements?
-- [ ] Should the virtual network gateway be VPN or ExpressRoute?
-- [ ] What exact name should be used for the servers subnet, subject to the environment naming requirements in feature 006?
+None. Address ranges and gateway scope are decided in ADR-003 and ADR-010.

@@ -6,17 +6,16 @@
 
 ## Specification
 
-- [ ] Select the VM image and operating system.
-- [ ] Define the private access method and required network rules.
-- [ ] Decide whether the Premium disk applies to the OS disk, a data disk, or both.
-- [ ] Select the Premium disk SKU, capacity, and performance settings.
-- [ ] Identify supported B-series overrides for the target Azure region.
+- [x] Select the Windows Server 2022 Datacenter Azure Edition image.
+- [x] Define Bastion RDP access over the private IP and limit inbound RDP to the Bastion subnet.
+- [x] Select a Premium SSD P10 OS disk only; no data disk.
+- [x] Keep `Standard_B2s_v2` as default and allow B-series overrides with at least two vCPUs.
 
 ## Implementation
 
 - [ ] Create one VM and NIC in the servers subnet from feature 003.
 - [ ] Set `Standard_B2s_v2` as the default and validate B-series overrides with at least two vCPUs.
-- [ ] Configure the approved attached disk as Premium managed storage.
+- [ ] Configure the OS disk as Premium SSD P10 and create no data disk.
 - [ ] Ensure no public IP is associated with the VM or NIC.
 - [ ] Apply feature 006 naming rules where permitted.
 

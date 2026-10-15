@@ -6,20 +6,20 @@
 
 ## Specification
 
-- [ ] Decide and approve the CI platform and protected approval mechanism.
-- [ ] Decide how plans will be reviewed, access-controlled, and retained.
-- [ ] Decide the secure identity mechanism and least-privilege permissions for approved applies.
+- [x] Select GitHub Actions and protected environment reviewers (ADR-012).
+- [x] Define sanitized plan review and prohibit sensitive raw plan output in logs.
+- [x] Select Azure OIDC/workload identity federation and least-privilege trust conditions (ADR-012).
 
 ## Implementation
 
-- [ ] Add CI checks for formatting and validation of the Terraform root module in feature 002.
-- [ ] Add plan generation for proposed changes without exposing sensitive output to untrusted jobs.
-- [ ] Add a protected approval gate before the apply job.
-- [ ] Configure secure deployment identity and least-privilege permissions.
+- [ ] Add GitHub Actions pull-request checks for formatting and validation in `infra/`.
+- [ ] Add a protected privileged-plan job that publishes only a sanitized summary.
+- [ ] Add an apply job restricted to `main` and a GitHub environment with required reviewers.
+- [ ] Configure Azure OIDC federation with least-privilege plan/apply roles and fork-PR exclusion.
 
 ## Verification
 
-- [ ] Demonstrate formatting check failure for a formatting violation in feature 002's Terraform root module.
+- [ ] Demonstrate formatting check failure for a formatting violation in `infra/`.
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
 - [ ] Verify untrusted changes cannot access deployment credentials or sensitive plan output.

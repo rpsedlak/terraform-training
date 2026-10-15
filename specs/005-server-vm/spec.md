@@ -1,6 +1,6 @@
 # Feature: Private Server VM
 
-**Status:** Draft  
+**Status:** Approved
 **Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
@@ -25,10 +25,13 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 
 ## Requirements
 
-- Create exactly one VM in the servers subnet and not in `GatewaySubnet` or `AzureBastionSubnet`, as decided in [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md).
+- Create exactly one VM in the servers subnet and not in `AzureBastionSubnet`, as decided in [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md).
 - Default the VM size to `Standard_B2s_v2`. Expose an input variable to override it; any override must be a B-series SKU with at least two vCPUs, as decided in [ADR-006](../001-terraform-ci-pipeline/decisions/ADR-006-b-series-vm-size.md).
 - Configure the VM's attached disk as Premium managed storage, as decided in [ADR-007](../001-terraform-ci-pipeline/decisions/ADR-007-premium-managed-disk.md).
 - Do not associate a public IP with the server VM or its network interface, as decided in [ADR-008](../001-terraform-ci-pipeline/decisions/ADR-008-no-server-public-ip.md).
+- Use the Windows Server 2022 Datacenter Azure Edition image: `MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest`.
+- Access the VM over its private IP using Azure Bastion and RDP; allow inbound RDP only from `AzureBastionSubnet`.
+- Use a Premium SSD P10 managed OS disk only; do not create a separate data disk.
 - Apply the environment code from feature [006 Environment Naming](../006-environment-naming/spec.md) where Azure naming rules permit.
 
 ## Acceptance criteria
@@ -37,8 +40,11 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 - [ ] Without an override, the VM size is `Standard_B2s_v2`.
 - [ ] A B-series override with at least two vCPUs is accepted; a non-B-series or undersized override is rejected.
 - [ ] The VM's attached disk uses an approved Premium managed disk SKU.
+- [ ] The VM uses the approved Windows Server 2022 Datacenter Azure Edition image.
+- [ ] Bastion RDP access uses the VM's private IP; inbound RDP is limited to `AzureBastionSubnet`.
+- [ ] The VM has a Premium SSD P10 OS disk and no additional data disk.
 - [ ] No public IP is associated with the VM or its NIC.
-- [ ] The VM is not placed in `GatewaySubnet` or `AzureBastionSubnet`.
+- [ ] The VM is not placed in `AzureBastionSubnet`.
 - [ ] Resource naming follows feature 006 where Azure naming rules permit.
 - [ ] The plan is reviewable without applying it.
 
@@ -46,12 +52,8 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 
 - The VM decisions are recorded in [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md) through [ADR-008](../001-terraform-ci-pipeline/decisions/ADR-008-no-server-public-ip.md).
 - Network resources are provided by feature 003; Azure Bastion is specified by feature 004.
-- VM image, operating system, access method, exact disk SKU/performance settings, and disk role remain open.
+- The VM image, private access path, RDP source, and P10 OS disk are defined by ADR-005 through ADR-008.
 
 ## Open questions
 
-- [ ] Which VM image and operating system should be used?
-- [ ] What private VM access method and network rules are required?
-- [ ] Does Premium managed storage apply to the OS disk, a data disk, or both?
-- [ ] Which Premium disk SKU, capacity, and performance settings should be used?
-- [ ] Which B-series override SKUs should be supported in the target Azure region?
+None. The VM image, access path, disk role/SKU, and VM size constraints are decided in ADR-005 through ADR-008.
