@@ -34,6 +34,22 @@ specs/
 		spec.md
 		plan.md
 		tasks.md
+	003-network-foundation/
+		spec.md
+		plan.md
+		tasks.md
+	004-azure-bastion/
+		spec.md
+		plan.md
+		tasks.md
+	005-server-vm/
+		spec.md
+		plan.md
+		tasks.md
+	006-environment-naming/
+		spec.md
+		plan.md
+		tasks.md
 ```
 
-The Azure environment requirements are specified in `specs/002-azure-environment/` and traced to accepted decision records. Infrastructure and pipeline implementation remain out of scope until their specifications are approved.
+The Azure environment is specified by separate network, Bastion, server VM, and naming features, with `specs/002-azure-environment/` tracking their integration. Infrastructure and pipeline implementation remain out of scope until their specifications are approved.

@@ -6,23 +6,16 @@
 
 ## Specification
 
-- [ ] Select a VNet base CIDR and non-overlapping subnet CIDRs; confirm gateway and Bastion subnet sizes meet Azure requirements.
-- [ ] Decide whether the virtual network gateway is VPN or ExpressRoute.
-- [ ] Select the Azure Bastion SKU and its public IP configuration.
-- [ ] Select the VM image, operating system, and private access method.
-- [ ] Specify which VM disk is Premium managed and select its SKU, capacity, and performance settings.
-- [ ] Define the full resource naming pattern around the environment code.
+- [ ] Approve features 003 through 006 and resolve their implementation-blocking questions.
 - [ ] Select the Terraform version, remote state backend/locking, and deployment identity.
+- [ ] Decide the Terraform root-module and component integration structure.
 
 ## Implementation
 
 - [ ] Add the Terraform root module and Azure provider configuration after the specification is approved.
-- [ ] Create the `/22` VNet, gateway subnet, `AzureBastionSubnet`, and `/24` servers subnet.
-- [ ] Deploy the Standard SKU virtual network gateway and Azure Bastion into their designated subnets.
-- [ ] Create exactly one server VM in the servers subnet with the approved B-series size default and override validation.
-- [ ] Configure the VM's attached disk as Premium managed storage.
-- [ ] Ensure the server VM NIC has no public IP association.
-- [ ] Apply the `d`/`t`/`p` environment code to resource names where Azure naming rules permit.
+- [ ] Integrate the approved network, Bastion, server VM, and naming features into the Terraform environment.
+- [ ] Configure the selected Terraform version, provider, backend, and deployment identity.
+- [ ] Integrate the environment with the protected CI workflow specified in feature 001.
 
 ## Verification
 

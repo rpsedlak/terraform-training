@@ -1,7 +1,7 @@
 # Feature: Azure Environment
 
 **Status:** Draft  
-**Owner:** <name or team>  
+**Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
 ## Problem
@@ -13,6 +13,7 @@ The project has accepted architecture decisions for its Azure environment, but t
 - Provision the Azure environment described by ADR-001 through ADR-009 using Terraform.
 - Make the environment's network, Bastion, server VM, disk, public-IP, and naming requirements testable.
 - Keep unresolved implementation choices explicit and block implementation when they affect safe deployment.
+- Keep detailed component requirements in features [003 Network Foundation](../003-network-foundation/spec.md), [004 Azure Bastion](../004-azure-bastion/spec.md), [005 Server VM](../005-server-vm/spec.md), and [006 Environment Naming](../006-environment-naming/spec.md).
 
 ## Non-goals
 
@@ -29,6 +30,7 @@ The project has accepted architecture decisions for its Azure environment, but t
 ## Requirements
 
 - The environment targets Microsoft Azure and is provisioned using Terraform. See [ADR-001](../001-terraform-ci-pipeline/decisions/ADR-001-azure-deployment.md) and [ADR-002](../001-terraform-ci-pipeline/decisions/ADR-002-terraform-deployment.md).
+- Detailed component requirements are owned by features 003 through 006; this feature coordinates their integration into one Terraform environment.
 - Create one virtual network with an address-space size of `/22`. It contains a `GatewaySubnet` for a Standard SKU virtual network gateway, an `AzureBastionSubnet` for Azure Bastion, and a servers subnet with a `/24` address-space size. See [ADR-003](../001-terraform-ci-pipeline/decisions/ADR-003-azure-network-topology.md).
 - Deploy Azure Bastion into `AzureBastionSubnet`. See [ADR-004](../001-terraform-ci-pipeline/decisions/ADR-004-azure-bastion.md).
 - Create exactly one virtual machine in the servers subnet. See [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md).

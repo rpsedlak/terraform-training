@@ -6,7 +6,7 @@
 
 ## Technical approach
 
-Implement one Terraform root module for the environment after the blocking decisions in `spec.md` are resolved. Define the Azure virtual network and required subnets, the Standard SKU virtual network gateway, Azure Bastion, and exactly one private server VM with the approved size and Premium managed disk. Derive resource-name environment codes from a single environment input, while preserving Azure-mandated names. Keep CI orchestration in [feature 001](../001-terraform-ci-pipeline/plan.md).
+Integrate the network foundation (feature 003), Azure Bastion (feature 004), server VM (feature 005), and environment naming (feature 006) as one Terraform environment after blocking decisions are resolved. This feature owns shared provider, version, state, identity, and root-module integration choices. Keep CI orchestration in [feature 001](../001-terraform-ci-pipeline/plan.md).
 
 ## Decisions
 
