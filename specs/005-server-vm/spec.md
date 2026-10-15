@@ -32,7 +32,7 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 - Use the Windows Server 2022 Datacenter Azure Edition image: `MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest`.
 - Access the VM over its private IP using Azure Bastion and RDP; allow inbound RDP only from `AzureBastionSubnet`.
 - Use a Premium SSD P10 managed OS disk only; do not create a separate data disk.
-- Retrieve the VM administrator username and password from Azure Key Vault after OIDC authentication. The username secret name is `adminuser`; configure the password secret name as `TF_VM_ADMIN_PASSWORD_SECRET_NAME`. See [ADR-015](../001-terraform-ci-pipeline/decisions/ADR-015-vm-credentials-from-key-vault.md).
+- Retrieve the VM administrator username and password from Azure Key Vault after OIDC authentication. Use secret names `adminuser` and `adminpassword`, respectively. See [ADR-015](../001-terraform-ci-pipeline/decisions/ADR-015-vm-credentials-from-key-vault.md).
 - Do not store VM credentials in GitHub secrets/variables or print their values in workflow logs. Restrict Terraform state access because the VM password is persisted in state.
 - Apply the environment code from feature [006 Environment Naming](../006-environment-naming/spec.md) where Azure naming rules permit.
 
@@ -45,7 +45,7 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 - [ ] The VM uses the approved Windows Server 2022 Datacenter Azure Edition image.
 - [ ] Bastion RDP access uses the VM's private IP; inbound RDP is limited to `AzureBastionSubnet`.
 - [ ] The VM has a Premium SSD P10 OS disk and no additional data disk.
-- [ ] The username is retrieved from the Key Vault secret `adminuser`, and the password is retrieved from the configured Key Vault secret name.
+- [ ] The username is retrieved from Key Vault secret `adminuser`, and the password is retrieved from `adminpassword`.
 - [ ] The VM credentials are not stored in GitHub secrets/variables or emitted in workflow logs.
 - [ ] No public IP is associated with the VM or its NIC.
 - [ ] The VM is not placed in `AzureBastionSubnet`.

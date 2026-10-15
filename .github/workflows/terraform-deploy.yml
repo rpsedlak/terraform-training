@@ -48,7 +48,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_environment: ${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}
       AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
-      TF_VM_ADMIN_PASSWORD_SECRET_NAME: ${{ vars.TF_VM_ADMIN_PASSWORD_SECRET_NAME }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
       TF_IN_AUTOMATION: "1"
       TF_INPUT: "0"
@@ -75,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
           username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
-          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name "$TF_VM_ADMIN_PASSWORD_SECRET_NAME" --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminpassword --query value --output tsv)"
           if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
             echo "Required VM credentials are missing or invalid in Key Vault."
             exit 1
@@ -148,7 +147,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_environment: ${{ inputs.environment }}
       AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
-      TF_VM_ADMIN_PASSWORD_SECRET_NAME: ${{ vars.TF_VM_ADMIN_PASSWORD_SECRET_NAME }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
       EXPECTED_PLAN_SUMMARY: ${{ needs.plan.outputs.change_summary }}
       TF_IN_AUTOMATION: "1"
@@ -176,7 +174,7 @@ jobs:
         run: |
           set -euo pipefail
           username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
-          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name "$TF_VM_ADMIN_PASSWORD_SECRET_NAME" --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminpassword --query value --output tsv)"
           if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
             echo "Required VM credentials are missing or invalid in Key Vault."
             exit 1

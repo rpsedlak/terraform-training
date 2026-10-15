@@ -11,7 +11,7 @@ The Windows server VM requires administrator credentials for provisioning. These
 
 - Retrieve the VM administrator username and password from Azure Key Vault after the workflow authenticates to Azure through OIDC.
 - Use `adminuser` as the Key Vault secret name for the username.
-- Read the password from the Key Vault secret whose name is supplied by the non-secret GitHub variable `TF_VM_ADMIN_PASSWORD_SECRET_NAME`.
+- Use `adminpassword` as the Key Vault secret name for the password.
 - Supply the Key Vault name through the non-secret GitHub variable `AZURE_KEY_VAULT_NAME`.
 - Do not print retrieved values in workflow logs.
 

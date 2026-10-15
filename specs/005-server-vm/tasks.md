@@ -10,7 +10,7 @@
 - [x] Define Bastion RDP access over the private IP and limit inbound RDP to the Bastion subnet.
 - [x] Select a Premium SSD P10 OS disk only; no data disk.
 - [x] Keep `Standard_B2s_v2` as default and allow B-series overrides with at least two vCPUs.
-- [x] Select Key Vault secret `adminuser` for the username and a configurable Key Vault password-secret name (ADR-015).
+- [x] Select Key Vault secrets `adminuser` and `adminpassword` for the username and password (ADR-015).
 
 ## Implementation
 
@@ -27,7 +27,7 @@
 - [ ] Verify exactly one VM is planned in the servers subnet.
 - [ ] Verify the default and override constraints for VM size.
 - [x] Verify the approved P10 OS disk, RDP NSG allow/deny rules, and no NIC public IP in offline tests.
-- [x] Verify the workflow reads `adminuser` and the configured password secret after Azure OIDC login and masks both values.
+- [x] Verify the workflow reads `adminuser` and `adminpassword` after Azure OIDC login and masks both values.
 - [ ] Verify plan/apply identities have only the required Key Vault secret-read access and Terraform state permissions.
 - [ ] Review the plan without applying it and record evidence.
 

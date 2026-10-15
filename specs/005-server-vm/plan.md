@@ -8,7 +8,7 @@
 
 Create one East US Windows Server 2022 Datacenter Azure Edition VM and its network interface in the servers subnet supplied by feature 003. Set `Standard_B2s_v2` as the VM-size default and validate B-series overrides with at least two vCPUs. Use a Premium SSD P10 OS disk only, no VM public IP, and RDP through Bastion's private connection.
 
-After Azure OIDC login, retrieve the VM administrator username from Key Vault secret `adminuser` and the password from the secret named by `TF_VM_ADMIN_PASSWORD_SECRET_NAME`. Pass both values to Terraform without printing them. Limit state access because Terraform state contains the VM password.
+After Azure OIDC login, retrieve the VM administrator username from Key Vault secret `adminuser` and the password from `adminpassword`. Pass both values to Terraform without printing them. Limit state access because Terraform state contains the VM password.
 
 ## Decisions
 
