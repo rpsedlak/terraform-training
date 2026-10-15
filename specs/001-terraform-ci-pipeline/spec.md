@@ -1,7 +1,7 @@
 # Feature: Terraform CI Pipeline
 
 **Status:** Draft  
-**Owner:** <name or team>  
+**Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
 ## Problem
