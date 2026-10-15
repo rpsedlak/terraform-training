@@ -14,5 +14,12 @@ Deploy Azure Bastion in the environment and place it in the `AzureBastionSubnet`
 ## Consequences
 
 - Terraform configuration will include the Azure Bastion resource and associate it with the designated `AzureBastionSubnet`.
-- The Bastion SKU, public IP configuration, and subnet CIDR allocation remain to be selected and must meet current Azure requirements.
+- Use the Basic SKU in East US. Microsoft lists Developer as unavailable in East US; Basic is the lowest-cost dedicated SKU available there.
+- Use a Standard SKU, static IPv4 public IP. The server VM itself remains without a public IP under ADR-008.
+- `AzureBastionSubnet` uses `10.20.0.0/26`, meeting the dedicated Bastion subnet minimum.
 - Bastion-related costs and access controls must be considered before deployment.
+
+## References
+
+- [Azure Bastion SKU comparison](https://learn.microsoft.com/en-us/azure/bastion/bastion-sku-comparison)
+- [Azure Bastion configuration settings](https://learn.microsoft.com/en-us/azure/bastion/configuration-settings)

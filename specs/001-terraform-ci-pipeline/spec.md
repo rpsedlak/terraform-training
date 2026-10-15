@@ -1,22 +1,22 @@
 # Feature: Terraform CI Pipeline
 
-**Status:** Draft  
-**Owner:** <name or team>  
+**Status:** Approved
+**Owner:** Richard Sedlak
 **Last updated:** 2026-10-14
 
 ## Problem
 
-Terraform changes need repeatable checks before they can be reviewed or deployed. This training project needs a defined, safe pipeline workflow for deploying to Microsoft Azure without assuming a specific CI vendor.
+Terraform changes need repeatable checks before they can be reviewed or deployed. The project uses GitHub Actions to safely validate, plan, and gate deployment of the Azure environment specified in [002 Azure Environment](../002-azure-environment/spec.md).
 
 ## Goals
 
 - Validate Terraform changes automatically before deployment.
 - Make plan output reviewable and prevent unapproved infrastructure changes from being applied.
-- Document the pipeline decisions so the example can be adapted to a chosen CI platform.
+- Document a repeatable GitHub Actions workflow with protected apply approval and short-lived Azure authentication.
 
 ## Non-goals
 
-- Selecting Azure resources beyond the network topology, Bastion deployment, and server VM recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md), [ADR-004](decisions/ADR-004-azure-bastion.md), and [ADR-005](decisions/ADR-005-single-server-vm.md).
+- Defining or implementing the Azure resources; those requirements belong to [002 Azure Environment](../002-azure-environment/spec.md).
 - Applying infrastructure automatically from an unreviewed change.
 - Storing cloud credentials or Terraform state in the repository.
 
@@ -28,44 +28,30 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 ## Requirements
 
-- The pipeline checks formatting and runs Terraform validation for the configured Terraform root module.
-- The environment deploys Azure Bastion into the `AzureBastionSubnet` defined by [ADR-003](decisions/ADR-003-azure-network-topology.md), as decided in [ADR-004](decisions/ADR-004-azure-bastion.md).
-- The environment creates one virtual machine in the servers subnet, as decided in [ADR-005](decisions/ADR-005-single-server-vm.md).
-- The VM defaults to `Standard_B2s_v2`; a Terraform input variable can override the size with a B-series SKU of at least two cores, as decided in [ADR-006](decisions/ADR-006-b-series-vm-size.md).
-- The VM's attached disk is an Azure Premium managed disk, as decided in [ADR-007](decisions/ADR-007-premium-managed-disk.md).
-- The server VM will not have a public IP address attached, as decided in [ADR-008](decisions/ADR-008-no-server-public-ip.md).
-- Resource names include a single-letter environment code: `d` for development, `t` for testing, and `p` for production, as decided in [ADR-009](decisions/ADR-009-environment-naming-codes.md).
-- A plan is generated for review on proposed changes, subject to the selected CI platform's security constraints.
-- Applying a plan requires an explicit approval gate and is not triggered by an unreviewed change.
-- Provider credentials and backend configuration are supplied through an approved secure mechanism, not committed to source control.
+- The pipeline runs formatting and validation checks against the Terraform root module specified by [002 Azure Environment](../002-azure-environment/spec.md).
+- GitHub Actions runs formatting and validation on pull requests. Fork pull requests receive no Azure OIDC token or deployment credentials.
+- A privileged plan is generated only in a protected GitHub environment; authorized reviewers can inspect a sanitized plan summary before apply.
+- Apply runs only from `main` after required reviewers approve the protected GitHub environment.
+- Azure authentication uses GitHub OIDC and Microsoft Entra workload identity federation, as decided in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
+- Backend identifiers are supplied as non-secret configuration; credentials and Terraform state are not committed to source control.
 - The pipeline reports the result of each required check.
 
 ## Acceptance criteria
 
-- [ ] A formatting violation causes the relevant CI check to fail.
-- [ ] Invalid Terraform configuration causes validation to fail.
-- [ ] The Terraform plan deploys Azure Bastion into the designated `AzureBastionSubnet`.
-- [ ] The Terraform plan creates exactly one virtual machine in the servers subnet.
-- [ ] Without an override, the VM size is `Standard_B2s_v2`.
-- [ ] A VM size override is accepted only when it is a B-series SKU with at least two cores.
-- [ ] The VM's attached disk is configured as a Premium managed disk.
-- [ ] The server VM has no public IP address attached to its network interface.
-- [ ] Resource names use `d`, `t`, or `p` for development, testing, or production, respectively, wherever Azure naming rules permit.
-- [ ] A proposed change produces a plan that can be reviewed before apply.
-- [ ] An apply cannot run without the agreed approval gate.
-- [ ] No credentials, state files, or generated plan artifacts containing sensitive data are committed to the repository.
+- [ ] A formatting violation in `infra/` causes the pull-request check to fail.
+- [ ] Invalid Terraform configuration in `infra/` causes validation to fail.
+- [ ] A privileged plan is reviewable by authorized reviewers before apply, without raw sensitive values in logs.
+- [ ] Fork pull requests cannot obtain Azure OIDC tokens or deployment credentials.
+- [ ] Apply is blocked unless it runs from `main` and the protected environment approval succeeds.
+- [ ] CI does not commit credentials or state files or expose sensitive plan output to untrusted users.
 
 ## Constraints and assumptions
 
-- The deployment target is Microsoft Azure ([ADR-001](decisions/ADR-001-azure-deployment.md)), and the environment will be provisioned using Terraform ([ADR-002](decisions/ADR-002-terraform-deployment.md)). The single-VNet topology and server subnet size are recorded in [ADR-003](decisions/ADR-003-azure-network-topology.md); Azure Bastion deployment is recorded in [ADR-004](decisions/ADR-004-azure-bastion.md); one VM in the servers subnet is recorded in [ADR-005](decisions/ADR-005-single-server-vm.md); its default size and override constraints are recorded in [ADR-006](decisions/ADR-006-b-series-vm-size.md); its Premium managed disk requirement is recorded in [ADR-007](decisions/ADR-007-premium-managed-disk.md); the server VM public IP restriction is recorded in [ADR-008](decisions/ADR-008-no-server-public-ip.md); and environment naming codes are recorded in [ADR-009](decisions/ADR-009-environment-naming-codes.md). CIDR allocations for the VNet and gateway and Bastion subnets remain open. VM image, operating system, exact disk SKU/performance settings, access method, resource name format beyond the environment code, other Azure resource scope, CI provider, Terraform version, state backend, and execution identity are undecided.
+- The environment's resources and naming rules are defined by [002 Azure Environment](../002-azure-environment/spec.md); this feature covers only CI behavior.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
-- Terraform commands and configuration details will be selected after the platform, resource scope, and version decisions are approved.
+- GitHub Actions and its protected approval process are defined in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
+- The Terraform root module, state backend, and identity are defined in [ADR-013](decisions/ADR-013-terraform-toolchain-and-state.md) and feature 002.
 
 ## Open questions
 
-- [ ] Which CI platform should this training example use, and who owns the approval gate?
-- [ ] Which Terraform version and Azure resource scope should the example target?
-- [ ] Which gateway type (VPN or ExpressRoute) and non-overlapping CIDR ranges should be used for the /22 VNet, GatewaySubnet, and AzureBastionSubnet?
-- [ ] What resource-name structure should surround the required single-letter environment code?
-- [ ] Which remote state backend, locking mechanism, and identity model should be demonstrated?
-- [ ] Should plan output be published as a CI artifact, and what retention and access controls are required?
+None. Implementation configuration values are tracked as tasks, not unresolved architecture decisions.

@@ -9,10 +9,10 @@ The environment includes one VM in the servers subnet, as recorded in [ADR-005](
 
 ## Decision
 
-The VM's attached disk shall be an Azure Premium managed disk.
+Use an Azure Premium SSD P10 managed disk for the VM's operating system disk. Do not create a separate data disk.
 
 ## Consequences
 
-- Terraform configuration must create or configure the VM's attached disk using Premium managed storage.
-- The exact disk SKU, performance settings, and whether this refers to the OS disk or a data disk remain to be specified before implementation.
-- Disk capacity and regional availability must be checked against the selected SKU and VM size.
+- Terraform configuration must create or configure the VM's OS disk as Premium SSD P10 (128 GiB).
+- No additional data disk is in scope.
+- Confirm regional availability and compatibility with the selected VM size before deployment.

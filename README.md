@@ -30,6 +30,26 @@ specs/
 		spec.md
 		plan.md
 		tasks.md
+	002-azure-environment/
+		spec.md
+		plan.md
+		tasks.md
+	003-network-foundation/
+		spec.md
+		plan.md
+		tasks.md
+	004-azure-bastion/
+		spec.md
+		plan.md
+		tasks.md
+	005-server-vm/
+		spec.md
+		plan.md
+		tasks.md
+	006-environment-naming/
+		spec.md
+		plan.md
+		tasks.md
 ```
 
-The first example feature targets Microsoft Azure. Its implementation is intentionally not included: use its spec to make and record the platform and execution decisions before adding pipeline code.
+The Azure environment is specified by separate network, Bastion, server VM, and naming features, with `specs/002-azure-environment/` tracking their integration. All feature specifications are approved; implementation must follow their tasks, and no real deployment may run without explicit authorization.
