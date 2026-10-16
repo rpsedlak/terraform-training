@@ -48,3 +48,21 @@ During the code-only implementation, no Azure API calls, credential retrieval, d
 - Deployed custom NSG rules are TCP 3389 allow from `69.244.159.36/32` at priority 100 and TCP 3389 deny from `*` at priority 110.
 - This machine's public egress was `69.244.159.36`; a TCP connection to `20.124.240.101:3389` succeeded. No VM credentials were retrieved locally or printed. A TCP handshake is not proof of authenticated RDP or denial from other sources; those acceptance checks remain open.
 - Testing and production were not dispatched. No Defender pricing change or local Terraform state modification was performed. The workflow used the configured environment-isolated remote backend.
+
+## Windows Runner Deployment Attempt: 2026-10-16 UTC
+
+- The user explicitly requested development deployment after PR #6 was merged. Source: `main` commit `b0903d09fa618c6d6527508dd8a1b6b676a1930f`, using the self-hosted Windows runner `tfrunner`.
+- Runner `tfrunner` was online and idle with matching labels. GitHub CI run `38830020559` succeeded for this revision; local readonly initialization, formatting, validation, 13 Terraform tests and both Ruby suites passed again.
+- Dispatched [workflow run 38830279003](https://github.com/rpsedlak/terraform-training/actions/runs/38830279003) with `environment=development` and `vm_size=Standard_D2ds_v6` at 00:34 UTC.
+- The plan job failed at `Read VM administrator credentials from Key Vault` with `bash: command not found`. Checkout, Terraform setup and Azure OIDC authentication succeeded. Remote-state initialization and planning were skipped; the apply job was skipped. No infrastructure apply occurred.
+- A read-only Azure check in the approved subscription returned `ResourceGroupNotFound` for `rg-terraform-training-d-eastus-001`; the earlier successful deployment record does not describe the current live environment. Development is currently absent.
+- Deployment is blocked until Bash is installed and discoverable by the Windows runner service. Existing backend-initialization steps also contain Bash syntax without an explicit Bash shell and need Windows compatibility review before retrying.
+- No runner configuration, workflow implementation, billing settings or local Terraform state was changed during this attempt. No credentials were displayed. Testing and production were not dispatched. A fresh development plan and protected apply remain pending.
+
+## Windows Backend Initialization Retry: 2026-10-16 UTC
+
+- The user requested another development deployment. Dispatched [workflow run 38830951954](https://github.com/rpsedlak/terraform-training/actions/runs/38830951954) from unchanged `main` commit `b0903d0`, with `environment=development` and `vm_size=Standard_D2ds_v6` at 00:41 UTC.
+- Bash credential retrieval and OIDC authentication succeeded, confirming the earlier missing-Bash blocker no longer occurs at that step. Remote-state initialization failed because the default Windows PowerShell shell treated the Bash `TF_STATE_KEY=...` assignment as a cmdlet. Planning and apply were skipped; no infrastructure apply occurred.
+- Read-only Azure check confirmed `rg-terraform-training-d-eastus-001` does not exist. Development remains absent; testing and production were not targeted.
+- Added a local minimal fix: `shell: bash` on both backend-initialization steps, supporting pipeline spec/plan clarification, and a regression assertion in the existing workflow tests. The assertion failed before the fix; all 10 workflow tests (74 assertions) pass afterward, and `git diff --check` passes.
+- The user chose to publish the fix themselves. No branch, commit, push, PR, merge, local apply, or further deployment retry was performed. Deployment remains blocked until the corrected workflow reaches `main`. No credentials were displayed or billing settings changed.

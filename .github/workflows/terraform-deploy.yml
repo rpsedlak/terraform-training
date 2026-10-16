@@ -98,6 +98,7 @@ jobs:
           printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
 
       - name: Initialize remote state
+        shell: bash
         run: |
           TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
           terraform -chdir=infra init -input=false \
@@ -199,6 +200,7 @@ jobs:
           printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
 
       - name: Initialize remote state
+        shell: bash
         run: |
           TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
           terraform -chdir=infra init -input=false \

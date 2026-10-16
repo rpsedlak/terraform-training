@@ -24,6 +24,8 @@
 
 ## Verification
 
+- [x] Reproduce Windows backend initialization failure in run `38830951954`: default PowerShell interpreted the Bash `TF_STATE_KEY=...` assignment as a cmdlet. Add `shell: bash` to both init steps and demonstrate the new regression assertion failing before the fix and passing afterward (10 workflow tests, 74 assertions).
+- [ ] Publish the local Windows backend-shell fix and validate it in a protected development workflow. The user chose to publish it themselves; no commit, PR, merge or further retry is authorized for this local fix.
 - [ ] Demonstrate formatting check failure for a formatting violation in `infra/`.
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.

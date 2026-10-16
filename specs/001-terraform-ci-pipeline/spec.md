@@ -36,6 +36,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - Azure authentication uses GitHub OIDC and Microsoft Entra workload identity federation, as decided in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
 - Backend identifiers are supplied as non-secret configuration; credentials and Terraform state are not committed to source control.
 - The pipeline reports the result of each required check.
+- Deployment scripts that use Bash syntax must explicitly select `shell: bash`, including remote-state initialization in both plan and apply jobs on the self-hosted Windows runner. Bash must be installed and available to the runner service.
 
 ## Acceptance criteria
 
@@ -46,6 +47,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - [ ] Apply is blocked unless it runs from `main` and the protected environment approval succeeds.
 - [ ] The manually dispatched VM size is used consistently for plan and apply; invalid environment/size combinations fail validation.
 - [ ] CI does not commit credentials or state files or expose sensitive plan output to untrusted users.
+- [ ] Both remote-state initialization steps explicitly use Bash; a workflow regression test rejects falling back to Windows PowerShell for those scripts.
 
 ## Constraints and assumptions
 

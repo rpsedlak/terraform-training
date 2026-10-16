@@ -115,6 +115,7 @@ class WorkflowsTest < Minitest::Test
     apply_init = @deployment.dig("jobs", "apply", "steps").find { |step| step["name"] == "Initialize remote state" }
 
     [plan_init, apply_init].each do |step|
+      assert_equal "bash", step["shell"], "Bash backend initialization must not use the Windows default shell"
       assert_includes step["run"], 'TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"'
     end
   end
