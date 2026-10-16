@@ -77,3 +77,17 @@ During the code-only implementation, no Azure API calls, credential retrieval, d
 - The proposed plan contains 8 creates (resource group, VNet, servers subnet, NSG, subnet/NSG association, public IP, NIC and VM), 0 changes and 0 destroys. No Bastion or JIT resource is proposed. The plan was not applied.
 - A post-failure read-only check again confirmed `rg-terraform-training-d-eastus-001` does not exist. Development remains undeployed. Testing and production were not dispatched and no subscription pricing changes were made.
 - Current blocker: install jq on `tfrunner`, make it discoverable through the runner service's PATH, and restart that service if necessary before retrying. No runner installation, workflow change, commit, PR, approval bypass or local apply was performed during this attempt.
+
+## Successful Windows Development Deployment: 2026-10-16 UTC
+
+- The user explicitly requested another development deployment from `main` commit `ea9c53e651f9f776c2764f0ef03c0c55bf4e9caa`.
+- GitHub CI run `38831782090` succeeded for this revision. Local formatting, readonly initialization, validation, 13 Terraform tests, 10 workflow tests (74 assertions) and 8 source tests (39 assertions) passed again.
+- Dispatched [workflow run 38831857565](https://github.com/rpsedlak/terraform-training/actions/runs/38831857565) at 00:51 UTC with `environment=development` and `vm_size=Standard_D2ds_v6`, on self-hosted Windows runner `tfrunner`.
+- The plan job passed credential retrieval, Bash backend initialization and jq summary generation. The plan proposed 8 creates, 0 changes and 0 destroys: resource group, VNet, servers subnet, NSG, subnet/NSG association, public IP, NIC and VM. No Bastion or JIT resource was proposed.
+- Apply waited at the required `terraform-apply-development` gate. The user explicitly approved this plan and continuation. When approval submission was attempted afterward, GitHub no longer had an eligible pending review and the run had already completed; no additional review was submitted and no protection rule was changed or bypassed.
+- Both workflow jobs succeeded. Apply completed at 00:54 UTC with 8 resources added, 0 changed and 0 destroyed. No local apply, workflow modification, runner installation, commit or PR was performed during this attempt.
+- Read-only Azure verification confirmed VM `vm-terraform-training-d-eastus-001` is `Succeeded` and `VM running`, size `Standard_D2ds_v6`, private IP `10.20.1.4`, public IP `20.127.58.31`. This is the current endpoint, superseding the earlier `20.124.240.101` deployment snapshot.
+- The public IP is Standard, Static, IPv4 and attached to the intended server NIC. Its servers subnet is `10.20.1.0/24` with the expected NSG association. No Bastion host is present.
+- Deployed custom rules allow inbound TCP 3389 from `69.244.159.36/32` at priority 100 and deny TCP 3389 from all other sources at priority 110.
+- This machine's public egress was `69.244.159.36`; a TCP connection to `20.127.58.31:3389` succeeded. Authenticated RDP and denial from alternate public/private sources remain untested. No VM credentials were retrieved locally or displayed.
+- Testing and production were not dispatched, no Defender pricing change was made, and the local root state file was not changed. The workflow used the configured development remote backend. The missing-Bash, PowerShell initialization and missing-jq blockers recorded above are resolved for this run.
