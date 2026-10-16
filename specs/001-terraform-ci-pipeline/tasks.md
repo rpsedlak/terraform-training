@@ -33,6 +33,8 @@
 - [x] Parse both workflow YAML files locally; `actionlint` is not installed.
 - [x] Test workflow trigger, OIDC, Key Vault, sanitization, and apply-gate contracts with Ruby tests.
 - [x] Verify provider initialization and validation with the committed lockfile on Linux amd64.
+- [x] Fix Windows provider checksum failure in Actions job `116739773407`: generate the missing AzureRM 4.81.0 Windows amd64 hash with Terraform 1.16.6 `providers lock -platform=linux_amd64 -platform=windows_amd64`; repeat the command and confirm the lockfile is unchanged.
+- [x] Recheck Terraform formatting, readonly initialization, validation, all 13 Terraform tests, and both Ruby suites (18 tests, 111 assertions) after the checksum fix. Local execution was Linux amd64; Windows execution remains to be confirmed by CI.
 - [x] Verify same-repository pull-request plans are gated on required Azure configuration.
 - [ ] Confirm all acceptance criteria in `spec.md` and record evidence.
 
