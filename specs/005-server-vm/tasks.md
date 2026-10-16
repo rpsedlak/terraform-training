@@ -11,7 +11,7 @@
 - [x] Align Terraform validation/defaults and workflow dispatch/PR-plan defaults.
 - [x] Test default and explicit D2ds_v6 acceptance across all environments, permitted B-series overrides and invalid SKUs.
 - [x] Run focused checks and record actual results here.
-- [ ] Separately resolve production approval-environment naming and verify quota before any authorized deployment. This revision does not deploy resources.
+- [x] Separately verify production approval-environment naming and quota before the user-authorized deployment: full-name production environments now exist; Ddsv6 and regional usage are both 4/10 vCPUs, sufficient for the approved two-vCPU SKU. This size revision itself did not deploy resources.
 
 The earlier size decisions and production preflight entries below are historical; ADR-019 supersedes their development-only restriction and production VM-size decision blocker, not the GitHub environment-name blocker.
 
@@ -72,3 +72,13 @@ The first authorized development apply failed because East US `standardBsv2Famil
 - The already-supported `Standard_B4ms` is available in East US without SKU restrictions. Its `standardBSFamily` quota is 0 used / 10 limit, and total regional vCPU quota is 4 used / 10 limit, sufficient for this four-vCPU option at preflight time.
 - Requested decisions on mapping the workflow to the existing protected production aliases and selecting B4ms were skipped. Neither change was authorized. Deployment remains blocked pending those decisions or user-provided protected full-name environments and increased Bsv2 quota.
 - No workflow, VM-size input, GitHub environment, OIDC identity, quota, Azure resource or state was changed; no commit, PR, approval submission or deployment was performed. Development and testing were not targeted.
+
+## Authorized Production Deployment: 2026-10-16 UTC
+
+- The user explicitly requested production deployment after PR #8 was merged. Source: `main` commit `6edde9eda0035b245cb369bda29670938d999985`, using `production` and `Standard_D2ds_v6` under ADR-019.
+- Verified `terraform-plan-production` and `terraform-apply-production` exist with branch/reviewer protection and required configuration keys. Both target the approved subscription. Ddsv6-family and regional quota were each 4 used / 10 limit. The production resource group was absent.
+- GitHub CI run `38837898640` succeeded for this commit. Local formatting, readonly initialization, validation, 14 Terraform tests, 10 workflow tests (74 assertions) and 8 source tests (39 assertions) passed.
+- Initial [run 38838100094](https://github.com/rpsedlak/terraform-training/actions/runs/38838100094) failed at Azure login with `AADSTS700213`; credentials, state initialization, plan and apply were skipped. Configured plan/apply apps trusted only their development environment subjects.
+- The user explicitly approved sharing those configured applications across development and production, adding only the exact production subjects while retaining development trusts and existing RBAC. Added `tf-plan-production` and `tf-apply-production` with issuer `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange` and the observed immutable-ID repository/environment subjects. Read-back verified all four development/production records. No secrets or RBAC expansion were created.
+- Retried as [run 38838826164](https://github.com/rpsedlak/terraform-training/actions/runs/38838826164) at 02:07 UTC. Production plan OIDC authentication succeeded; planning is in progress and apply/live verification are not yet complete. No required reviewer gate was bypassed.
+- No development/testing workflow, local apply, GitHub environment rename, quota request, commit or PR was performed during this production attempt. No credentials were displayed.

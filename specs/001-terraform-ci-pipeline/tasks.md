@@ -12,6 +12,8 @@
 
 ## Implementation
 
+- [x] Add and read back the user-approved exact production OIDC subjects on the configured plan/apply apps, preserving development records, issuer/audience and existing RBAC. Production plan authentication succeeded in run `38838826164`.
+- [ ] Confirm production apply authentication and complete the protected production workflow; no approval gate may be bypassed.
 - [x] Align manual VM-size default and PR-plan fallback to `Standard_D2ds_v6` for all environments under ADR-019; workflow tests verify both values and existing input propagation.
 - [x] Retire JIT pricing/policy/operator permission prerequisites under ADR-018; retain existing network, compute, state and Key Vault role requirements. No Azure RBAC or billing changes were performed.
 - [x] Add GitHub Actions pull-request checks for formatting and validation in `infra/`.

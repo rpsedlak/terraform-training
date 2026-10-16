@@ -22,6 +22,7 @@ The deployment jobs run on the approved self-hosted Windows runner. Explicitly s
 ## Security and operations
 
 - Credentials and permissions: expose credentials only to trusted apply jobs and use the selected platform's secure identity mechanism.
+- Production OIDC setup: the user approved additive production trusts on the plan/apply applications already configured in the production GitHub environments. Preserve existing development records, issuer `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange`, and RBAC. Use the observed immutable-ID subjects `repo:rpsedlak@2582442/terraform-training@1419924521:environment:terraform-plan-production` and `repo:rpsedlak@2582442/terraform-training@1419924521:environment:terraform-apply-production`; do not substitute the older plain repository-name subject format. Verify both records before retrying. Sharing identities across environments is explicitly accepted for this deployment; no secrets or role expansion are created.
 - Plan output: publish only a sanitized summary; do not print raw plan values in workflow logs.
 - Apply: require approval from designated reviewers in the protected environment and restrict deployment branches to `main`.
 

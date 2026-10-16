@@ -55,6 +55,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - The environment's resources and naming rules are defined by [002 Azure Environment](../002-azure-environment/spec.md); this feature covers only CI behavior.
 - CI jobs must use least-privilege permissions and must not expose secrets to untrusted pull requests.
 - GitHub Actions and its protected approval process are defined in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
+- The user explicitly approved reusing the currently configured plan and apply Entra applications across development and production. Add only the exact protected production environment OIDC subjects; retain development subjects and existing RBAC. This shares application identity across environments, while plan/apply identities remain separate and state/approval gates remain environment-specific.
 - The Terraform root module, state backend, and identity are defined in [ADR-013](decisions/ADR-013-terraform-toolchain-and-state.md) and feature 002.
 
 ## Open questions
