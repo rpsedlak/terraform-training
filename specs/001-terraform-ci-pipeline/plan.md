@@ -6,7 +6,7 @@
 
 ## Technical approach
 
-Keep pipeline configuration separate from infrastructure configuration. GitHub Actions runs formatting and validation on pull requests, while privileged plan and apply jobs use GitHub protected environments and Azure OIDC. Fork pull requests receive no Azure credentials. Manual dispatch passes the selected environment and VM size to both plan and apply; Terraform accepts `Standard_D2ds_v6` only for development under ADR-016. Reviewers inspect a sanitized plan summary before approving apply from `main`.
+Keep pipeline configuration separate from infrastructure configuration. GitHub Actions runs formatting and validation on pull requests, while privileged plan and apply jobs use GitHub protected environments and Azure OIDC. Fork pull requests receive no Azure credentials. Manual dispatch passes the selected environment and VM size to both plan and apply. Under ADR-019, `Standard_D2ds_v6` is the shared default for development, testing and production; the manual input default and PR-plan fallback match Terraform, with existing valid B-series overrides retained. Reviewers inspect a sanitized plan summary before approving apply from `main`.
 
 The deployment jobs run on the approved self-hosted Windows runner. Explicitly select `shell: bash` for every Bash script, including both remote-state initialization steps; do not let POSIX assignments and line continuations execute under default PowerShell. Keep the backend keys, OIDC settings, runner labels and protected environments unchanged. A regression assertion in the existing workflow tests checks both initialization shells before a development retry. This compatibility fix does not authorize a commit, PR merge or approval bypass.
 

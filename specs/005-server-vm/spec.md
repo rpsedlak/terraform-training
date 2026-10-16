@@ -11,7 +11,7 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 ## Goals
 
 - Create exactly one VM in the servers subnet from feature [003 Network Foundation](../003-network-foundation/spec.md).
-- Use the default size, override constraints and Premium disk tier from ADR-005 through ADR-007, with source-restricted public-IP access under ADR-018.
+- Use the shared VM-size default and override constraints from ADR-019, Premium disk tier from ADR-007, and source-restricted public-IP access under ADR-018.
 
 ## Non-goals
 
@@ -26,7 +26,7 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 ## Requirements
 
 - Create exactly one VM in the servers subnet and not in `AzureBastionSubnet`, as decided in [ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md).
-- Default the VM size to `Standard_B2s_v2`. Expose an input variable to override it; overrides must be B-series SKUs with at least two vCPUs, except development may use `Standard_D2ds_v6` under [ADR-016](../001-terraform-ci-pipeline/decisions/ADR-016-development-vm-size-quota-exception.md).
+- Default the VM size to `Standard_D2ds_v6` for development, testing and production under [ADR-019](../001-terraform-ci-pipeline/decisions/ADR-019-shared-d2ds-v6-vm-size.md). Expose an input variable; also accept B-series overrides with at least two vCPUs. Reject other non-B-series and undersized sizes. ADR-019 supersedes the earlier B2s_v2 default and development-only exception.
 - Configure the VM's attached disk as Premium managed storage, as decided in [ADR-007](../001-terraform-ci-pipeline/decisions/ADR-007-premium-managed-disk.md).
 - Associate a Standard static IPv4 public IP with the existing server NIC under [ADR-018](../001-terraform-ci-pipeline/decisions/ADR-018-source-restricted-rdp.md), superseding ADR-008 and the JIT portion of ADR-017.
 - Use the Windows Server 2022 Datacenter Azure Edition image: `MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest`.
@@ -39,9 +39,9 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 ## Acceptance criteria
 
 - [ ] The plan contains exactly one VM attached to the servers subnet.
-- [ ] Without an override, the VM size is `Standard_B2s_v2`.
-- [ ] A B-series override with at least two vCPUs is accepted; a non-B-series or undersized override is rejected, except the approved development-only `Standard_D2ds_v6` override.
-- [ ] `Standard_D2ds_v6` is accepted for development and rejected for testing and production.
+- [x] Without an override, the VM size is `Standard_D2ds_v6` in development, testing and production (mocked plan tests).
+- [x] A B-series override with at least two vCPUs is accepted; other non-B-series or undersized overrides are rejected, except the approved `Standard_D2ds_v6` SKU (mocked plan tests).
+- [x] Explicit `Standard_D2ds_v6` inputs are accepted for development, testing and production (mocked plan tests).
 - [ ] The VM's attached disk uses an approved Premium managed disk SKU.
 - [ ] The VM uses the approved Windows Server 2022 Datacenter Azure Edition image.
 - [ ] Public-IP RDP is allowed only from `69.244.159.36/32` and explicitly denied from every other source under feature 007.
@@ -55,11 +55,11 @@ The Azure environment needs one server VM with defined placement, minimum size, 
 
 ## Constraints and assumptions
 
-- The VM decisions are recorded in ADR-005 through ADR-008 and [ADR-016](../001-terraform-ci-pipeline/decisions/ADR-016-development-vm-size-quota-exception.md).
+- The VM decisions are recorded in ADR-005 through ADR-008, with current size requirements in [ADR-019](../001-terraform-ci-pipeline/decisions/ADR-019-shared-d2ds-v6-vm-size.md), superseding ADR-016's development-only scope.
 - Network resources are provided by feature 003; source-restricted public access is specified by feature 007, superseding feature 004.
 - The VM image and P10 OS disk are defined by ADR-005 through ADR-007. Public-IP access and the trusted RDP source are defined by ADR-018; credential sourcing is defined by ADR-015.
 - Terraform state contains the VM password and must be restricted to the approved deployment identities.
 
 ## Open questions
 
-None. VM image, disk and size constraints follow ADR-005 through ADR-007 and ADR-016; direct RDP follows ADR-018.
+None. VM image and disk follow ADR-005 and ADR-007; sizing follows ADR-019 and direct RDP follows ADR-018.

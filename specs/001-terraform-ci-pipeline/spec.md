@@ -33,6 +33,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - A privileged plan is generated only in a protected GitHub environment; authorized reviewers can inspect a sanitized plan summary before apply.
 - Apply runs only from `main` after required reviewers approve the protected GitHub environment.
 - Manual deployment dispatch accepts a VM-size input and passes it to both plan and apply; Terraform validates the environment/size combination.
+- Terraform, dispatch and PR-plan defaults use `Standard_D2ds_v6` for development, testing and production under [ADR-019](decisions/ADR-019-shared-d2ds-v6-vm-size.md); the former development-only restriction is retired.
 - Azure authentication uses GitHub OIDC and Microsoft Entra workload identity federation, as decided in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
 - Backend identifiers are supplied as non-secret configuration; credentials and Terraform state are not committed to source control.
 - The pipeline reports the result of each required check.

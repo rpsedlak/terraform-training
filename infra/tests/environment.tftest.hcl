@@ -92,8 +92,8 @@ run "development_names" {
   }
 
   assert {
-    condition     = azurerm_windows_virtual_machine.server.size == "Standard_B2s_v2"
-    error_message = "the VM must default to Standard_B2s_v2."
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
+    error_message = "development must default to Standard_D2ds_v6."
   }
 
   assert {
@@ -176,6 +176,11 @@ run "testing_code" {
   }
 
   assert {
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
+    error_message = "testing must default to Standard_D2ds_v6, matching development."
+  }
+
+  assert {
     condition = (
       length(azurerm_network_security_group.servers.security_rule) == 2 &&
       toset([for rule in azurerm_network_security_group.servers.security_rule : rule.source_address_prefix if rule.access == "Allow"]) == toset(["69.244.159.36/32"]) &&
@@ -202,6 +207,11 @@ run "production_code" {
   assert {
     condition     = local.names.server_vm == "vm-terraform-training-p-eastus-001"
     error_message = "production VM names must use the p environment code."
+  }
+
+  assert {
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
+    error_message = "production must default to Standard_D2ds_v6, matching development."
   }
 
   assert {
@@ -255,7 +265,7 @@ run "accept_valid_b_series_override" {
   }
 }
 
-run "accept_development_d2ds_v6_quota_exception" {
+run "accept_explicit_development_d2ds_v6" {
   command = plan
 
   variables {
@@ -267,11 +277,11 @@ run "accept_development_d2ds_v6_quota_exception" {
 
   assert {
     condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
-    error_message = "the approved D2ds_v6 quota exception must be accepted in development."
+    error_message = "Standard_D2ds_v6 must be accepted explicitly in development."
   }
 }
 
-run "reject_development_d2ds_v6_in_testing" {
+run "accept_explicit_testing_d2ds_v6" {
   command = plan
 
   variables {
@@ -281,7 +291,26 @@ run "reject_development_d2ds_v6_in_testing" {
     vm_admin_password = "example-only-password-123"
   }
 
-  expect_failures = [var.vm_size]
+  assert {
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
+    error_message = "Standard_D2ds_v6 must be accepted explicitly in testing."
+  }
+}
+
+run "accept_explicit_production_d2ds_v6" {
+  command = plan
+
+  variables {
+    environment       = "production"
+    vm_size           = "Standard_D2ds_v6"
+    vm_admin_username = "vmadmin"
+    vm_admin_password = "example-only-password-123"
+  }
+
+  assert {
+    condition     = azurerm_windows_virtual_machine.server.size == "Standard_D2ds_v6"
+    error_message = "Standard_D2ds_v6 must be accepted explicitly in production."
+  }
 }
 
 run "reject_non_b_series_vm" {

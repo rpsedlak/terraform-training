@@ -10,7 +10,7 @@
 
 ## Technical approach
 
-Create one East US Windows Server 2022 Datacenter Azure Edition VM and its network interface in the servers subnet supplied by feature 003. Set `Standard_B2s_v2` as the VM-size default; allow B-series overrides with at least two vCPUs and the `Standard_D2ds_v6` development-only exception in ADR-016. Use a Premium SSD P10 OS disk only and a Standard static public IPv4 for source-restricted direct RDP. Retain the subnet NSG association before public-IP attachment.
+Create one East US Windows Server 2022 Datacenter Azure Edition VM and its network interface in the servers subnet supplied by feature 003. Set `Standard_D2ds_v6` as the VM-size default for development, testing and production under ADR-019; retain B-series overrides with at least two vCPUs. Validate D2ds_v6 without an environment restriction. Match the workflow dispatch and PR-plan fallback defaults to Terraform. Use a Premium SSD P10 OS disk only and a Standard static public IPv4 for source-restricted direct RDP. Retain the subnet NSG association before public-IP attachment.
 
 After Azure OIDC login, retrieve the VM administrator username from Key Vault secret `adminuser` and the password from `adminpassword`. Pass both values to Terraform without printing them. Limit state access because Terraform state contains the VM password.
 
@@ -19,8 +19,7 @@ After Azure OIDC login, retrieve the VM administrator username from Key Vault se
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | VM count and placement | One VM in the servers subnet ([ADR-005](../001-terraform-ci-pipeline/decisions/ADR-005-single-server-vm.md)) | Approved compute footprint. |
-| VM size | Default `Standard_B2s_v2`; B-series override with at least two vCPUs ([ADR-006](../001-terraform-ci-pipeline/decisions/ADR-006-b-series-vm-size.md)) | Approved default and minimum. |
-| Development quota exception | `Standard_D2ds_v6` only in development ([ADR-016](../001-terraform-ci-pipeline/decisions/ADR-016-development-vm-size-quota-exception.md)) | East US Bsv2 quota is exhausted for this subscription; D2ds_v6 has available quota. |
+| VM size | Default `Standard_D2ds_v6` for all environments; retain B-series overrides with at least two vCPUs ([ADR-019](../001-terraform-ci-pipeline/decisions/ADR-019-shared-d2ds-v6-vm-size.md)) | Testing and production match development. |
 | OS disk | Premium SSD P10, no data disk ([ADR-007](../001-terraform-ci-pipeline/decisions/ADR-007-premium-managed-disk.md)) | Approved tier, SKU, and disk role. |
 | Public IP | Standard static IPv4 on existing NIC ([ADR-018](../001-terraform-ci-pipeline/decisions/ADR-018-source-restricted-rdp.md)) | Direct access without Bastion or JIT. |
 | Image and access | Windows Server 2022 Datacenter Azure Edition; direct public-IP RDP | Preserve the OS and credentials. |
@@ -36,7 +35,7 @@ After Azure OIDC login, retrieve the VM administrator username from Key Vault se
 
 ## Validation
 
-- Verify the default and allowed/denied VM size overrides.
+- Verify the D2ds_v6 default and explicit input in all three environments, valid B-series overrides, and rejection of other D-series/undersized inputs. Verify dispatch and PR-plan defaults match.
 - Review the plan for VM count, subnet/NSG attachment, image, P10 OS disk, exact RDP allow/deny rules, NIC public IP association and Key Vault credential wiring.
 - Run Terraform formatting and validation; do not apply.
 
