@@ -57,7 +57,7 @@ class WorkflowsTest < Minitest::Test
     assert_includes apply["if"], "github.ref == 'refs/heads/main'"
     assert_match(/terraform-apply-/, apply.dig("environment", "name"))
     assert_equal "write", apply.dig("permissions", "id-token")
-    assert_equal "Standard_B2s_v2", vm_size_input["default"]
+    assert_equal "Standard_D2ds_v6", vm_size_input["default"]
     assert_includes vm_size_input["options"], "Standard_D2ds_v6"
   end
 
@@ -87,7 +87,7 @@ class WorkflowsTest < Minitest::Test
       assert_equal "${{ steps.vm_admin.outputs.password }}", step.dig("env", "TF_VAR_vm_admin_password")
     end
 
-    assert_equal "${{ inputs.vm_size || 'Standard_B2s_v2' }}", @deployment.dig("jobs", "plan", "env", "TF_VAR_vm_size")
+    assert_equal "${{ inputs.vm_size || 'Standard_D2ds_v6' }}", @deployment.dig("jobs", "plan", "env", "TF_VAR_vm_size")
     assert_equal "${{ inputs.vm_size }}", @deployment.dig("jobs", "apply", "env", "TF_VAR_vm_size")
   end
 

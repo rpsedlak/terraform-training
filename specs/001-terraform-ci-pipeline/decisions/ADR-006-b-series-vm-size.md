@@ -1,6 +1,6 @@
 # ADR-006: Use a B-Series VM with at Least Two Cores
 
-**Status:** Accepted  
+**Status:** Default superseded by [ADR-019](ADR-019-shared-d2ds-v6-vm-size.md); B-series overrides with at least two vCPUs retained. Text below records the original decision.
 **Date:** 2026-10-14
 
 ## Context
