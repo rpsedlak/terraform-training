@@ -4,6 +4,18 @@
 **Related plan:** [plan.md](plan.md)  
 **Status:** In Progress
 
+## Development Branch Correction: ADR-020
+
+- [x] User selected `development-20261015` for development and authorized the scoped commit/push and protected deployment. Testing/production remain main-only; no environment allowlist is broadened.
+- [x] Update approved specification/plan and supersede ADR-012's development-only branch clause before implementation.
+- [x] Add and validate identical environment-specific manual guards in plan/apply; preserve PR-plan restrictions and approvals.
+- [x] Run focused workflow tests and required offline checks; record evidence.
+- [ ] Publish the scoped correction to the existing development branch and review its actual plan before required apply approval.
+
+Earlier main-only development task entries below describe the superseded policy.
+
+Verification on 2026-10-16: the new exact-guard regression failed against the previous main-only development condition, then passed after the fix. All 11 workflow tests (76 assertions), 14 Terraform mock tests and 8 source tests (39 assertions) pass. Terraform 1.16.6 formatting, readonly backend-free initialization and validation pass. Protected environment names/reviewers, OIDC, backend keys, VM inputs and Terraform resources are unchanged. The fix was prepared in an isolated worktree to preserve unrelated uncommitted testing setup documentation in the user's working directory. Deployment run `38905079374` had been rejected before any steps because `main` was not allowed by the development environment's existing `development-*` policy; no apply occurred in that run.
+
 ## Specification
 
 - [x] Select GitHub Actions and protected environment reviewers (ADR-012).

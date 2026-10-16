@@ -1,6 +1,6 @@
 # ADR-012: Use GitHub Actions for Terraform CI
 
-**Status:** Accepted  
+**Status:** Accepted; development deployment branch restriction superseded by [ADR-020](ADR-020-development-deployment-branch.md). The original decision below remains historical for that clause.
 **Date:** 2026-10-14
 
 ## Context

@@ -2,7 +2,7 @@
 
 **Status:** Approved
 **Owner:** Richard Sedlak
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-16
 
 ## Problem
 
@@ -31,7 +31,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - The pipeline runs formatting and validation checks against the Terraform root module specified by [002 Azure Environment](../002-azure-environment/spec.md).
 - GitHub Actions runs formatting and validation on pull requests. Fork pull requests receive no Azure OIDC token or deployment credentials.
 - A privileged plan is generated only in a protected GitHub environment; authorized reviewers can inspect a sanitized plan summary before apply.
-- Apply runs only from `main` after required reviewers approve the protected GitHub environment.
+- Manual development plan/apply runs only from `development-20261015`; manual testing and production plan/apply remain main-only under [ADR-020](decisions/ADR-020-development-deployment-branch.md). Every apply requires the protected GitHub environment's reviewer approval. Do not change GitHub branch allowlists, reviewer requirements or OIDC trusts for this branch correction.
 - Manual deployment dispatch accepts a VM-size input and passes it to both plan and apply; Terraform validates the environment/size combination.
 - Terraform, dispatch and PR-plan defaults use `Standard_D2ds_v6` for development, testing and production under [ADR-019](decisions/ADR-019-shared-d2ds-v6-vm-size.md); the former development-only restriction is retired.
 - Azure authentication uses GitHub OIDC and Microsoft Entra workload identity federation, as decided in [ADR-012](decisions/ADR-012-github-actions-deployment.md).
@@ -45,7 +45,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 - [ ] Invalid Terraform configuration in `infra/` causes validation to fail.
 - [ ] A privileged plan is reviewable by authorized reviewers before apply, without raw sensitive values in logs.
 - [ ] Fork pull requests cannot obtain Azure OIDC tokens or deployment credentials.
-- [ ] Apply is blocked unless it runs from `main` and the protected environment approval succeeds.
+- [ ] Manual development jobs require `refs/heads/development-20261015`; manual testing/production jobs require `refs/heads/main`. Wrong environment/ref combinations are blocked, and every apply still requires protected approval.
 - [ ] The manually dispatched VM size is used consistently for plan and apply; invalid environment/size combinations fail validation.
 - [ ] CI does not commit credentials or state files or expose sensitive plan output to untrusted users.
 - [ ] Both remote-state initialization steps explicitly use Bash; a workflow regression test rejects falling back to Windows PowerShell for those scripts.
