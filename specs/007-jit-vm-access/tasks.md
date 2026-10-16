@@ -66,3 +66,14 @@ During the code-only implementation, no Azure API calls, credential retrieval, d
 - Read-only Azure check confirmed `rg-terraform-training-d-eastus-001` does not exist. Development remains absent; testing and production were not targeted.
 - Added a local minimal fix: `shell: bash` on both backend-initialization steps, supporting pipeline spec/plan clarification, and a regression assertion in the existing workflow tests. The assertion failed before the fix; all 10 workflow tests (74 assertions) pass afterward, and `git diff --check` passes.
 - The user chose to publish the fix themselves. No branch, commit, push, PR, merge, local apply, or further deployment retry was performed. Deployment remains blocked until the corrected workflow reaches `main`. No credentials were displayed or billing settings changed.
+
+## Corrected Windows Workflow Retry: 2026-10-16 UTC
+
+- The user published the Bash-shell fix to `main` commit `0c08cebb0a2c2c0139bc3b71f1b3f8c3493f3c19` and explicitly requested development deployment again.
+- Confirmed both backend-initialization steps select Bash, runner `tfrunner` is online, and GitHub CI run `38831272924` succeeded. Local formatting, readonly initialization, validation, 13 Terraform tests, 10 workflow tests (74 assertions) and 8 source tests (39 assertions) passed.
+- Dispatched [workflow run 38831385902](https://github.com/rpsedlak/terraform-training/actions/runs/38831385902) with `environment=development` and `vm_size=Standard_D2ds_v6` at 00:46 UTC. No other environment was dispatched and no approval gate was bypassed.
+- The new run successfully retrieved Key Vault credentials and initialized remote state under Bash, verifying the fix on the Windows runner. Terraform planning completed, but summary generation failed with `jq: command not found` (exit 127); the apply job was skipped.
+- A read-only predeployment check confirmed the development resource group was absent. No VM credentials were retrieved locally or displayed, and the local root state file was not changed.
+- The proposed plan contains 8 creates (resource group, VNet, servers subnet, NSG, subnet/NSG association, public IP, NIC and VM), 0 changes and 0 destroys. No Bastion or JIT resource is proposed. The plan was not applied.
+- A post-failure read-only check again confirmed `rg-terraform-training-d-eastus-001` does not exist. Development remains undeployed. Testing and production were not dispatched and no subscription pricing changes were made.
+- Current blocker: install jq on `tfrunner`, make it discoverable through the runner service's PATH, and restart that service if necessary before retrying. No runner installation, workflow change, commit, PR, approval bypass or local apply was performed during this attempt.
