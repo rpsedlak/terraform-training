@@ -1,6 +1,6 @@
 # ADR-016: Use Standard_D2ds_v6 for Development VM
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-019](ADR-019-shared-d2ds-v6-vm-size.md), which defaults all environments to D2ds_v6. Text below records the original development-only exception.
 **Date:** 2026-10-14
 
 ## Context

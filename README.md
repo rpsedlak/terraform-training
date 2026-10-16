@@ -78,7 +78,7 @@ ruby tests/terraform_source_test.rb
 
 For a local plan, authenticate with Azure CLI and retrieve the VM username and password from Key Vault secrets `adminuser` and `adminpassword`. Supply them through Terraform input variables without printing or saving their values. Do not run `terraform apply` without explicit authorization.
 
-For a development deployment, select `development` and `Standard_D2ds_v6` in the protected manual workflow dispatch to use the approved East US Bsv2-quota exception. The Terraform default remains `Standard_B2s_v2`; other overrides must satisfy the VM-size validation in the approved server VM spec.
+Development, testing and production all default to `Standard_D2ds_v6` under [ADR-019](specs/001-terraform-ci-pipeline/decisions/ADR-019-shared-d2ds-v6-vm-size.md). Terraform, manual workflow dispatch and pull-request plans use the same default. B-series overrides with at least two vCPUs remain supported; other non-B-series sizes are rejected. Verify Ddsv6-family and regional quota before deployment. No deployment is performed by changing these defaults; the production GitHub environment-name mismatch remains a separate prerequisite.
 
 ## Direct RDP Access
 

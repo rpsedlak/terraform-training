@@ -15,9 +15,9 @@ on:
           - testing
           - production
       vm_size:
-        description: VM size; Standard_D2ds_v6 is available as a development quota override
+        description: VM size for all environments; defaults to Standard_D2ds_v6
         required: true
-        default: Standard_B2s_v2
+        default: Standard_D2ds_v6
         type: choice
         options:
           - Standard_B2s_v2
@@ -59,7 +59,7 @@ jobs:
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_environment: ${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}
-      TF_VAR_vm_size: ${{ inputs.vm_size || 'Standard_B2s_v2' }}
+      TF_VAR_vm_size: ${{ inputs.vm_size || 'Standard_D2ds_v6' }}
       AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
       TF_IN_AUTOMATION: "1"

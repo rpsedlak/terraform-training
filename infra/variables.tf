@@ -9,13 +9,13 @@ variable "environment" {
 }
 
 variable "vm_size" {
-  description = "B-series VM size with at least two vCPUs; Standard_D2ds_v6 is also allowed in development."
+  description = "VM size for every environment: Standard_D2ds_v6 by default, or a B-series override with at least two vCPUs."
   type        = string
-  default     = "Standard_B2s_v2"
+  default     = "Standard_D2ds_v6"
 
   validation {
-    condition     = can(regex("^Standard_B(2|[3-9]|[1-9][0-9]+)[A-Za-z0-9_]*$", var.vm_size)) || (var.environment == "development" && var.vm_size == "Standard_D2ds_v6")
-    error_message = "vm_size must be a B-series SKU with at least two vCPUs, except Standard_D2ds_v6 is allowed for development."
+    condition     = var.vm_size == "Standard_D2ds_v6" || can(regex("^Standard_B(2|[3-9]|[1-9][0-9]+)[A-Za-z0-9_]*$", var.vm_size))
+    error_message = "vm_size must be Standard_D2ds_v6 or a B-series SKU with at least two vCPUs."
   }
 }
 
