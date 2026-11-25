@@ -12,6 +12,16 @@
 - [x] Run focused workflow tests and required offline checks; record evidence.
 - [ ] Publish the scoped correction to the existing development branch and review its actual plan before required apply approval.
 
+## Automatic Deployment on Merge: ADR-021
+
+- [x] User requested revising the specification to authorize automatic deployments; ADR-021, spec, plan, ADR-020 status note and README updated before implementation changes.
+- [x] Restore the manual environment/branch guard on the plan job (it had been reduced to any `workflow_dispatch`) and limit push plan/apply to `main` and `development-20261015`.
+- [x] Align the apply VM-size fallback and workflow tests with the spec; tests assert the full normalized plan/apply guards and the push-branch-to-matrix mapping.
+- [ ] Open implementation gap: the plan job's environment, state key and summary come from `inputs.environment || vars.TF_ENVIRONMENT || 'development'`, but a push to `main` applies `testing` and `production` from a matrix. The apply re-plan comparison would compare against a summary for a different environment. Make the plan job per-environment (same matrix) before relying on automatic applies; also decide whether production must wait for testing (`max-parallel: 1`/ordering), since the matrix currently runs in parallel. Tracked, not changed here.
+- [ ] Confirm GitHub environment reviewer rules and branch policies allow `push` runs on `main` for testing/production and on `development-20261015` for development.
+
+Verification on 2026-11-25 after the ADR-021 revision: 12 workflow tests (82 assertions) and 8 Terraform source tests (39 assertions) pass locally with Ruby. Terraform checks are unchanged by this work and were passing in Actions job `139367482367`. No deployment was performed.
+
 Earlier main-only development task entries below describe the superseded policy.
 
 Verification on 2026-10-16: the new exact-guard regression failed against the previous main-only development condition, then passed after the fix. All 11 workflow tests (76 assertions), 14 Terraform mock tests and 8 source tests (39 assertions) pass. Terraform 1.16.6 formatting, readonly backend-free initialization and validation pass. Protected environment names/reviewers, OIDC, backend keys, VM inputs and Terraform resources are unchanged. The fix was prepared in an isolated worktree to preserve unrelated uncommitted testing setup documentation in the user's working directory. Deployment run `38905079374` had been rejected before any steps because `main` was not allowed by the development environment's existing `development-*` policy; no apply occurred in that run.

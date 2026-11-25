@@ -44,8 +44,11 @@ jobs:
     name: Create sanitized plan summary
     if: >-
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'push') ||
-      (github.event_name == 'workflow_dispatch')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/development-20261015') ||
+      (github.event_name == 'workflow_dispatch' &&
+      ((inputs.environment == 'development' && github.ref == 'refs/heads/development-20261015') ||
+      ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main')))
     runs-on: [self-hosted, windows, x64, terraform-training]
     environment:
       name: terraform-plan-${{ inputs.environment || vars.TF_ENVIRONMENT || 'development' }}

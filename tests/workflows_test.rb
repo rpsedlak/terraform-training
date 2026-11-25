@@ -61,18 +61,33 @@ class WorkflowsTest < Minitest::Test
     assert_includes vm_size_input["options"], "Standard_D2ds_v6"
   end
 
-  def test_manual_plan_and_apply_use_exact_environment_branch_guards
+  def test_plan_and_apply_use_exact_event_environment_branch_guards
     manual_guard = <<~CONDITION.split.join(" ")
-      github.event_name == 'workflow_dispatch' &&
+      (github.event_name == 'workflow_dispatch' &&
       ((inputs.environment == 'development' && github.ref == 'refs/heads/development-20261015') ||
-      ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main'))
+      ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main')))
+    CONDITION
+    push_guard = <<~CONDITION.split.join(" ")
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/development-20261015')
     CONDITION
     pull_request_guard = <<~CONDITION.split.join(" ")
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     CONDITION
 
-    assert_equal manual_guard, @deployment.dig("jobs", "apply", "if").split.join(" ")
-    assert_equal "#{pull_request_guard} || (#{manual_guard})", @deployment.dig("jobs", "plan", "if").split.join(" ")
+    assert_equal "#{push_guard} || #{manual_guard}", @deployment.dig("jobs", "apply", "if").split.join(" ")
+    assert_equal "#{pull_request_guard} || #{push_guard} || #{manual_guard}", @deployment.dig("jobs", "plan", "if").split.join(" ")
+  end
+
+  def test_push_triggers_only_approved_branches_and_apply_matrix_matches_branch
+    triggers = trigger_config(@deployment)
+    apply = @deployment.dig("jobs", "apply")
+    matrix = apply.dig("strategy", "matrix", "environment").split.join(" ")
+
+    assert_equal %w[main development-20261015], triggers.dig("push", "branches")
+    assert_includes matrix, "github.ref == 'refs/heads/main' && fromJson('[\"testing\", \"production\"]')"
+    assert_includes matrix, "github.ref == 'refs/heads/development-20261015' && fromJson('[\"development\"]')"
+    assert_equal "terraform-apply-${{ matrix.environment }}", apply.dig("environment", "name")
   end
 
   def test_both_jobs_read_and_mask_fixed_key_vault_secrets
@@ -102,7 +117,7 @@ class WorkflowsTest < Minitest::Test
     end
 
     assert_equal "${{ inputs.vm_size || 'Standard_D2ds_v6' }}", @deployment.dig("jobs", "plan", "env", "TF_VAR_vm_size")
-    assert_equal "${{ inputs.vm_size }}", @deployment.dig("jobs", "apply", "env", "TF_VAR_vm_size")
+    assert_equal "${{ inputs.vm_size || 'Standard_D2ds_v6' }}", @deployment.dig("jobs", "apply", "env", "TF_VAR_vm_size")
   end
 
   def test_apply_replans_and_compares_summary_before_applying

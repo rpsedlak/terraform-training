@@ -1,6 +1,6 @@
 # ADR-020: Deploy Development From Its Development Branch
 
-**Status:** Accepted
+**Status:** Accepted; the prohibition on an automatic apply trigger is superseded by [ADR-021](ADR-021-automatic-deployment-on-merge.md). The manual environment/branch mapping remains in force.
 **Date:** 2026-10-16
 
 ## Decision
