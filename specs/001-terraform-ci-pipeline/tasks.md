@@ -39,7 +39,7 @@ Verification on 2026-10-16: the new exact-guard regression failed against the pr
 
 - [x] Reproduce Windows backend initialization failure in run `38830951954`: default PowerShell interpreted the Bash `TF_STATE_KEY=...` assignment as a cmdlet. Add `shell: bash` to both init steps and demonstrate the new regression assertion failing before the fix and passing afterward (10 workflow tests, 74 assertions).
 - [ ] Publish the local Windows backend-shell fix and validate it in a protected development workflow. The user chose to publish it themselves; no commit, PR, merge or further retry is authorized for this local fix.
-- [ ] Demonstrate formatting check failure for a formatting violation in `infra/`.
+- [x] Demonstrate formatting check failure for a formatting violation in `infra/`.
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
 - [ ] Verify untrusted changes cannot access deployment credentials or sensitive plan output.
@@ -52,6 +52,8 @@ Verification on 2026-10-16: the new exact-guard regression failed against the pr
 - [x] Recheck Terraform formatting, readonly initialization, validation, all 13 Terraform tests, and both Ruby suites (18 tests, 111 assertions) after the checksum fix. Local execution was Linux amd64; Windows execution remains to be confirmed by CI.
 - [x] Verify same-repository pull-request plans are gated on required Azure configuration.
 - [ ] Confirm all acceptance criteria in `spec.md` and record evidence.
+
+Formatting verification on 2026-11-25: Actions job `139339563076` rejected unformatted `compute.tf`. Terraform 1.16.6 reproduced the failure; after formatting, recursive format check, backend-free readonly initialization, validation, all 14 Terraform tests, and both Ruby suites (19 tests, 115 assertions) passed locally on Linux. No deployment was performed.
 
 ## Completion notes
 

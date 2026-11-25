@@ -89,13 +89,13 @@ resource "azurerm_windows_virtual_machine" "server" {
 }
 
 resource "azurerm_managed_disk" "server_data" {
-  name                = "${local.names.server_vm}-data-disk"
-  location            = azurerm_resource_group.environment.location
-  resource_group_name = azurerm_resource_group.environment.name
+  name                 = "${local.names.server_vm}-data-disk"
+  location             = azurerm_resource_group.environment.location
+  resource_group_name  = azurerm_resource_group.environment.name
   storage_account_type = "Premium_LRS"
-  create_option       = "Empty"
-  disk_size_gb        = 128
-  tags                = local.tags
+  create_option        = "Empty"
+  disk_size_gb         = 128
+  tags                 = local.tags
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "server_data" {
