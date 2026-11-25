@@ -4,6 +4,18 @@
 **Related plan:** [plan.md](plan.md)  
 **Status:** In Progress
 
+## Development Branch Correction: ADR-020
+
+- [x] User selected `development-20261015` for development and authorized the scoped commit/push and protected deployment. Testing/production remain main-only; no environment allowlist is broadened.
+- [x] Update approved specification/plan and supersede ADR-012's development-only branch clause before implementation.
+- [x] Add and validate identical environment-specific manual guards in plan/apply; preserve PR-plan restrictions and approvals.
+- [x] Run focused workflow tests and required offline checks; record evidence.
+- [ ] Publish the scoped correction to the existing development branch and review its actual plan before required apply approval.
+
+Earlier main-only development task entries below describe the superseded policy.
+
+Verification on 2026-10-16: the new exact-guard regression failed against the previous main-only development condition, then passed after the fix. All 11 workflow tests (76 assertions), 14 Terraform mock tests and 8 source tests (39 assertions) pass. Terraform 1.16.6 formatting, readonly backend-free initialization and validation pass. Protected environment names/reviewers, OIDC, backend keys, VM inputs and Terraform resources are unchanged. The fix was prepared in an isolated worktree to preserve unrelated uncommitted testing setup documentation in the user's working directory. Deployment run `38905079374` had been rejected before any steps because `main` was not allowed by the development environment's existing `development-*` policy; no apply occurred in that run.
+
 ## Specification
 
 - [x] Select GitHub Actions and protected environment reviewers (ADR-012).
@@ -29,7 +41,7 @@
 
 - [x] Reproduce Windows backend initialization failure in run `38830951954`: default PowerShell interpreted the Bash `TF_STATE_KEY=...` assignment as a cmdlet. Add `shell: bash` to both init steps and demonstrate the new regression assertion failing before the fix and passing afterward (10 workflow tests, 74 assertions).
 - [ ] Publish the local Windows backend-shell fix and validate it in a protected development workflow. The user chose to publish it themselves; no commit, PR, merge or further retry is authorized for this local fix.
-- [ ] Demonstrate formatting check failure for a formatting violation in `infra/`.
+- [x] Demonstrate formatting check failure for a formatting violation in `infra/`.
 - [ ] Demonstrate validation failure for invalid Terraform configuration.
 - [ ] Verify the proposed-change flow exposes a reviewable plan before apply.
 - [ ] Verify untrusted changes cannot access deployment credentials or sensitive plan output.
@@ -40,9 +52,13 @@
 - [x] Verify provider initialization and validation with the committed lockfile on Linux amd64.
 - [x] Fix Windows provider checksum failure in Actions job `116739773407`: generate the missing AzureRM 4.81.0 Windows amd64 hash with Terraform 1.16.6 `providers lock -platform=linux_amd64 -platform=windows_amd64`; repeat the command and confirm the lockfile is unchanged.
 - [x] Recheck Terraform formatting, readonly initialization, validation, all 13 Terraform tests, and both Ruby suites (18 tests, 111 assertions) after the checksum fix. Local execution was Linux amd64; Windows execution remains to be confirmed by CI.
-- [x] Verify same-repository pull-request plans are gated on required Azure configuration.
+- [x] Verify same-repository pull-request plans are not gated by job-level checks for environment-scoped Azure configuration, while fork and manual branch guards remain intact.
 - [ ] Confirm all acceptance criteria in `spec.md` and record evidence.
+
+Formatting verification on 2026-11-25: Actions job `139339563076` rejected unformatted `compute.tf`. Terraform 1.16.6 reproduced the failure; after formatting, recursive format check, backend-free readonly initialization, validation, all 14 Terraform tests, and both Ruby suites (19 tests, 115 assertions) passed locally on Linux. No deployment was performed.
+
+Workflow verification on 2026-11-25: Actions job `139353543139` passed formatting, initialization, validation and 14 Terraform tests, but failed two Ruby assertions expecting the removed job-level configuration checks. After updating the assertions, 11 workflow tests (76 assertions) and 8 Terraform source tests (39 assertions) passed locally; both workflow YAML files parsed successfully. The exact guard test retains the same-repository and manual environment/branch restrictions. No deployment was performed.
 
 ## Completion notes
 
-Both workflow YAML files parse locally, and the Ruby tests cover workflow triggers, OIDC, Key Vault, state keys, plan sanitization, apply gating, and Terraform source contracts. Terraform 1.16.6 format, readonly provider initialization, validation, and all 11 Terraform tests pass on Linux amd64. Same-repository pull-request plan jobs now skip when required Azure variables are absent; workflow-dispatched plans still require configuration. The AzureRM lockfile includes the Linux provider package checksum required by CI. `actionlint` is unavailable. GitHub environments/reviewer rules and Microsoft Entra OIDC federation/Key Vault permissions must be configured before privileged jobs can run.
+Both workflow YAML files parse locally, and the Ruby tests cover workflow triggers, OIDC, Key Vault, state keys, plan sanitization, apply gating, and Terraform source contracts. Terraform 1.16.6 format, readonly provider initialization, validation, and all 11 Terraform tests pass on Linux amd64. Same-repository pull-request plan jobs are no longer skipped based on job-level checks for Azure variables; privileged jobs still require configuration. The AzureRM lockfile includes the Linux provider package checksum required by CI. `actionlint` is unavailable. GitHub environments/reviewer rules and Microsoft Entra OIDC federation/Key Vault permissions must be configured before privileged jobs can run.

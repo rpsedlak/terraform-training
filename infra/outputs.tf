@@ -17,3 +17,8 @@ output "server_private_ip_address" {
   description = "Private IP address of the server VM."
   value       = azurerm_network_interface.server.private_ip_address
 }
+
+output "server_data_disk_id" {
+  description = "Resource ID of the 128GB data disk attached to the server VM."
+  value       = azurerm_managed_disk.server_data.id
+}

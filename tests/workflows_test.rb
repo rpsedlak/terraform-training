@@ -33,7 +33,7 @@ class WorkflowsTest < Minitest::Test
     assert_match(/terraform-plan-/, plan.dig("environment", "name"))
   end
 
-  def test_pull_request_plan_requires_complete_azure_configuration
+  def test_plan_guard_does_not_require_environment_configuration
     plan = @deployment.dig("jobs", "plan")
 
     %w[
@@ -43,12 +43,12 @@ class WorkflowsTest < Minitest::Test
       AZURE_KEY_VAULT_NAME
       TF_STATE_RESOURCE_GROUP
     ].each do |variable|
-      assert_includes plan["if"], "vars.#{variable} != ''"
+      refute_includes plan["if"], "vars.#{variable}"
     end
     assert_includes plan["if"], "github.event_name == 'workflow_dispatch'"
   end
 
-  def test_apply_is_manual_main_only_and_protected
+  def test_apply_is_manual_environment_branch_restricted_and_protected
     triggers = trigger_config(@deployment)
     apply = @deployment.dig("jobs", "apply")
     vm_size_input = triggers.dig("workflow_dispatch", "inputs", "vm_size")
@@ -59,6 +59,20 @@ class WorkflowsTest < Minitest::Test
     assert_equal "write", apply.dig("permissions", "id-token")
     assert_equal "Standard_D2ds_v6", vm_size_input["default"]
     assert_includes vm_size_input["options"], "Standard_D2ds_v6"
+  end
+
+  def test_manual_plan_and_apply_use_exact_environment_branch_guards
+    manual_guard = <<~CONDITION.split.join(" ")
+      github.event_name == 'workflow_dispatch' &&
+      ((inputs.environment == 'development' && github.ref == 'refs/heads/development-20261015') ||
+      ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main'))
+    CONDITION
+    pull_request_guard = <<~CONDITION.split.join(" ")
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    CONDITION
+
+    assert_equal manual_guard, @deployment.dig("jobs", "apply", "if").split.join(" ")
+    assert_equal "#{pull_request_guard} || (#{manual_guard})", @deployment.dig("jobs", "plan", "if").split.join(" ")
   end
 
   def test_both_jobs_read_and_mask_fixed_key_vault_secrets
