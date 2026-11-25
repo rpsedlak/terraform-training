@@ -1,0 +1,343 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Azure environment to destroy (development, testing, or production)
+        required: true
+        type: choice
+        options:
+          - development
+          - testing
+          - production
+      environment_confirmation:
+        description: 'Type the environment name to confirm (e.g., "development")'
+        required: true
+        type: string
+      backup_snapshot:
+        description: Create state backup before destroying (recommended)
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  TF_STATE_STORAGE_ACCOUNT: dizzyterraform20261014
+  TF_STATE_CONTAINER: tfstate
+
+concurrency:
+  group: terraform-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate destroy request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      environment_safe: ${{ steps.validate.outputs.environment_safe }}
+    steps:
+      - name: Validate environment confirmation
+        id: validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          environment="${{ inputs.environment }}"
+          confirmation="${{ inputs.environment_confirmation }}"
+          
+          echo "Requested environment: $environment"
+          echo "User confirmation: $confirmation"
+          
+          if [[ "$environment" != "$confirmation" ]]; then
+            echo "ERROR: Environment confirmation does not match selected environment"
+            echo "Selected: $environment"
+            echo "Confirmed: $confirmation"
+            exit 1
+          fi
+          
+          echo "✓ Environment confirmation validated"
+          echo "environment_safe=true" >> "$GITHUB_OUTPUT"
+
+      - name: Validate branch restrictions
+        shell: bash
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          BRANCH: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          
+          # Extract branch name from refs/heads/branch-name
+          branch_name="${BRANCH#refs/heads/}"
+          
+          if [[ "$ENVIRONMENT" == "development" ]]; then
+            if [[ "$branch_name" != "development-20261015" ]]; then
+              echo "ERROR: Development destroy can only be triggered from development-20261015 branch"
+              echo "Current branch: $branch_name"
+              exit 1
+            fi
+            echo "✓ Development branch restriction passed"
+          else
+            # testing or production
+            if [[ "$branch_name" != "main" ]]; then
+              echo "ERROR: Testing and production destroy can only be triggered from main branch"
+              echo "Current branch: $branch_name"
+              exit 1
+            fi
+            echo "✓ Testing/production branch restriction passed"
+          fi
+
+  plan-destroy:
+    name: Plan destroy for ${{ inputs.environment }}
+    needs: validate
+    if: needs.validate.outputs.environment_safe == 'true'
+    runs-on: [self-hosted, windows, x64, terraform-training]
+    environment:
+      name: terraform-destroy-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_PLAN_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_environment: ${{ inputs.environment }}
+      TF_VAR_vm_size: Standard_D2ds_v6
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      TF_IN_AUTOMATION: "1"
+      TF_INPUT: "0"
+    outputs:
+      destroy_summary: ${{ steps.plan_destroy.outputs.destroy_summary }}
+      resource_count: ${{ steps.plan_destroy.outputs.resource_count }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+
+      - name: Authenticate to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_PLAN_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read VM administrator credentials from Key Vault
+        id: vm_admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminpassword --query value --output tsv)"
+          if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
+            echo "Required VM credentials are missing or invalid in Key Vault."
+            exit 1
+          fi
+          echo "::add-mask::$username"
+          echo "::add-mask::$password"
+          printf 'username=%s\n' "$username" >> "$GITHUB_OUTPUT"
+          printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize remote state
+        shell: bash
+        run: |
+          TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
+          terraform -chdir=infra init -input=false \
+            -backend-config="resource_group_name=${TF_STATE_RESOURCE_GROUP}" \
+            -backend-config="storage_account_name=${TF_STATE_STORAGE_ACCOUNT}" \
+            -backend-config="container_name=${TF_STATE_CONTAINER}" \
+            -backend-config="key=${TF_STATE_KEY}" \
+            -backend-config="use_oidc=true" \
+            -backend-config="use_azuread_auth=true" \
+            -backend-config="client_id=${ARM_CLIENT_ID}" \
+            -backend-config="tenant_id=${ARM_TENANT_ID}" \
+            -backend-config="subscription_id=${ARM_SUBSCRIPTION_ID}"
+
+      - name: Backup Terraform state
+        if: inputs.backup_snapshot == true
+        shell: bash
+        run: |
+          set -euo pipefail
+          backup_dir="${RUNNER_TEMP}/terraform-state-backups"
+          mkdir -p "$backup_dir"
+          
+          timestamp=$(date +%Y%m%d-%H%M%S)
+          backup_file="$backup_dir/terraform-${TF_VAR_environment}-${timestamp}.tfstate"
+          
+          echo "Creating state backup: $backup_file"
+          terraform -chdir=infra state pull > "$backup_file"
+          
+          echo "State backup created successfully"
+          wc -c "$backup_file"
+
+      - name: Plan destroy
+        id: plan_destroy
+        shell: bash
+        env:
+          TF_VAR_vm_admin_username: ${{ steps.vm_admin.outputs.username }}
+          TF_VAR_vm_admin_password: ${{ steps.vm_admin.outputs.password }}
+        run: |
+          set -euo pipefail
+          plan_file="${RUNNER_TEMP}/terraform-destroy.tfplan"
+          plan_json="${RUNNER_TEMP}/terraform-destroy-plan.json"
+          trap 'rm -f "$plan_file" "$plan_json"' EXIT
+          
+          echo "Generating destroy plan for environment: ${TF_VAR_environment}"
+          terraform -chdir=infra plan -destroy -input=false -no-color -lock-timeout=5m -out="$plan_file"
+          terraform -chdir=infra show -json "$plan_file" > "$plan_json"
+          
+          # Count resources to be destroyed
+          resource_count=$(jq '[.resource_changes[]? | select(.change.actions == ["delete"])] | length' "$plan_json")
+          echo "Resources to be destroyed: $resource_count"
+          echo "resource_count=$resource_count" >> "$GITHUB_OUTPUT"
+          
+          # Generate destroy summary
+          summary="$(jq -c '[.resource_changes[]? | select(.change.actions == ["delete"]) | .address] | sort' "$plan_json")"
+          echo "destroy_summary=${summary}" >> "$GITHUB_OUTPUT"
+          
+          # Publish to summary
+          {
+            echo "## ⚠️ Terraform Destroy Plan for ${TF_VAR_environment}"
+            echo
+            echo "**Environment:** \`${TF_VAR_environment}\`"
+            echo "**Resources to destroy:** ${resource_count}"
+            echo "**Branch:** \`${{ github.ref_name }}\`"
+            echo "**Requested by:** @${{ github.actor }}"
+            echo "**Triggered at:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo
+            echo "### Resources that will be destroyed:"
+            echo
+            if [[ "${resource_count}" -eq 0 ]]; then
+              echo "No resources will be destroyed (state is already clean)"
+            else
+              jq -r '.[] | "- `\(.)`"' <<< "${summary}"
+            fi
+            echo
+            echo "⚠️ **This action will remove all managed infrastructure for ${TF_VAR_environment}!**"
+            echo
+            echo "Approval required before proceeding."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload state backup
+        if: inputs.backup_snapshot == true && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state-backup-${{ inputs.environment }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/terraform-state-backups/
+          retention-days: 30
+
+  destroy:
+    name: Execute destroy
+    needs: plan-destroy
+    if: needs.plan-destroy.outputs.resource_count != '0'
+    runs-on: [self-hosted, windows, x64, terraform-training]
+    environment:
+      name: terraform-destroy-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_PLAN_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_environment: ${{ inputs.environment }}
+      TF_VAR_vm_size: Standard_D2ds_v6
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      TF_IN_AUTOMATION: "1"
+      TF_INPUT: "0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+
+      - name: Authenticate to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_PLAN_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read VM administrator credentials from Key Vault
+        id: vm_admin
+        shell: bash
+        run: |
+          set -euo pipefail
+          username="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminuser --query value --output tsv)"
+          password="$(az keyvault secret show --vault-name "$AZURE_KEY_VAULT_NAME" --name adminpassword --query value --output tsv)"
+          if [[ -z "$username" || -z "$password" || "$username" == *$'\n'* || "$password" == *$'\n'* ]]; then
+            echo "Required VM credentials are missing or invalid in Key Vault."
+            exit 1
+          fi
+          echo "::add-mask::$username"
+          echo "::add-mask::$password"
+          printf 'username=%s\n' "$username" >> "$GITHUB_OUTPUT"
+          printf 'password=%s\n' "$password" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize remote state
+        shell: bash
+        run: |
+          TF_STATE_KEY="tftraining-${TF_VAR_environment}.tfstate"
+          terraform -chdir=infra init -input=false \
+            -backend-config="resource_group_name=${TF_STATE_RESOURCE_GROUP}" \
+            -backend-config="storage_account_name=${TF_STATE_STORAGE_ACCOUNT}" \
+            -backend-config="container_name=${TF_STATE_CONTAINER}" \
+            -backend-config="key=${TF_STATE_KEY}" \
+            -backend-config="use_oidc=true" \
+            -backend-config="use_azuread_auth=true" \
+            -backend-config="client_id=${ARM_CLIENT_ID}" \
+            -backend-config="tenant_id=${ARM_TENANT_ID}" \
+            -backend-config="subscription_id=${ARM_SUBSCRIPTION_ID}"
+
+      - name: Execute destroy
+        shell: bash
+        env:
+          TF_VAR_vm_admin_username: ${{ steps.vm_admin.outputs.username }}
+          TF_VAR_vm_admin_password: ${{ steps.vm_admin.outputs.password }}
+        run: |
+          set -euo pipefail
+          
+          echo "⚠️  EXECUTING TERRAFORM DESTROY FOR: ${TF_VAR_environment}"
+          echo "Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "User: ${{ github.actor }}"
+          echo
+          
+          terraform -chdir=infra destroy -auto-approve -input=false -no-color -lock-timeout=5m
+          
+          echo
+          echo "✓ Terraform destroy completed successfully"
+          echo "Environment ${TF_VAR_environment} has been destroyed"
+
+      - name: Publish destruction report
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## ✓ Terraform Destroy Completed"
+            echo
+            echo "**Environment:** \`${{ inputs.environment }}\`"
+            echo "**Status:** Destroyed"
+            echo "**Completed at:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo "**Requested by:** @${{ github.actor }}"
+            echo "**Workflow run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            echo
+            echo "All managed resources for ${{ inputs.environment }} have been removed."
+          } >> "$GITHUB_STEP_SUMMARY"

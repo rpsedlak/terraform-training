@@ -12,6 +12,8 @@ Use identical explicit manual-dispatch predicates in plan and apply: development
 
 Under ADR-021, add `push` triggers for `main` and `development-20261015`. The plan job runs for same-repository pull requests and pushes; the apply job runs for a push to `main` (matrix: testing, production), a push to `development-20261015` (development), or a manual dispatch matching the ADR-020 predicate. The apply matrix environment, protected `terraform-apply-<environment>` environment, state key and re-plan summary comparison are all derived from the environment being applied. The apply VM-size fallback is `Standard_D2ds_v6`, matching the plan job. Regression tests assert the entire normalized `if` expressions so no extra event, ref or environment clause can be added unnoticed. Environment names, reviewer gates, OIDC, state keys and VM sizing are otherwise unchanged.
 
+Under ADR-022, add a dedicated terraform destroy workflow for infrastructure teardown. The destroy workflow operates separately from plan/apply, using manual-only triggers with explicit environment confirmation to prevent accidents. See [plan-destroy.md](plan-destroy.md) for destroy workflow details.
+
 The deployment jobs run on the approved self-hosted Windows runner. Explicitly select `shell: bash` for every Bash script, including both remote-state initialization steps; do not let POSIX assignments and line continuations execute under default PowerShell. Keep the backend keys, OIDC settings, runner labels and protected environments unchanged. A regression assertion in the existing workflow tests checks both initialization shells before a development retry. This compatibility fix does not authorize a commit, PR merge or approval bypass.
 
 ## Decisions
