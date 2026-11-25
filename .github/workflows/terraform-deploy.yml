@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
+      - development-20261015
   workflow_dispatch:
     inputs:
       environment:
@@ -40,6 +44,8 @@ jobs:
     name: Create sanitized plan summary
     if: >-
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/development-20261015') ||
       (github.event_name == 'workflow_dispatch' &&
       ((inputs.environment == 'development' && github.ref == 'refs/heads/development-20261015') ||
       ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main')))
@@ -142,16 +148,26 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   apply:
-    name: Apply approved plan
+    name: Apply approved plan to ${{ matrix.environment }}
     if: >-
-      github.event_name == 'workflow_dispatch' &&
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/development-20261015') ||
+      (github.event_name == 'workflow_dispatch' &&
       ((inputs.environment == 'development' && github.ref == 'refs/heads/development-20261015') ||
-      ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main'))
+      ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main')))
     needs:
       - plan
+    strategy:
+      matrix:
+        environment: >-
+          ${{
+            (github.event_name == 'push' && github.ref == 'refs/heads/main' && fromJson('["testing", "production"]')) ||
+            (github.event_name == 'push' && github.ref == 'refs/heads/development-20261015' && fromJson('["development"]')) ||
+            (github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', inputs.environment)))
+          }}
     runs-on: [self-hosted, windows, x64, terraform-training]
     environment:
-      name: terraform-apply-${{ inputs.environment }}
+      name: terraform-apply-${{ matrix.environment }}
     permissions:
       contents: read
       id-token: write
@@ -161,8 +177,8 @@ jobs:
       ARM_CLIENT_ID: ${{ vars.AZURE_APPLY_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      TF_VAR_environment: ${{ inputs.environment }}
-      TF_VAR_vm_size: ${{ inputs.vm_size }}
+      TF_VAR_environment: ${{ matrix.environment }}
+      TF_VAR_vm_size: ${{ inputs.vm_size || 'Standard_D2ds_v6' }}
       AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
       TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
       EXPECTED_PLAN_SUMMARY: ${{ needs.plan.outputs.change_summary }}
