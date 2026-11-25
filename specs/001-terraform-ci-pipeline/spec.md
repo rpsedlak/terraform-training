@@ -30,6 +30,7 @@ Terraform changes need repeatable checks before they can be reviewed or deployed
 
 - The pipeline runs formatting and validation checks against the Terraform root module specified by [002 Azure Environment](../002-azure-environment/spec.md).
 - GitHub Actions runs formatting and validation on pull requests. Fork pull requests receive no Azure OIDC token or deployment credentials.
+- Same-repository pull-request plans must not be skipped by job-level checks for environment-scoped Azure configuration.
 - A privileged plan is generated only in a protected GitHub environment; authorized reviewers can inspect a sanitized plan summary before apply.
 - Manual development plan/apply runs only from `development-20261015`; manual testing and production plan/apply remain main-only under [ADR-020](decisions/ADR-020-development-deployment-branch.md). Every apply requires the protected GitHub environment's reviewer approval. Do not change GitHub branch allowlists, reviewer requirements or OIDC trusts for this branch correction.
 - Manual deployment dispatch accepts a VM-size input and passes it to both plan and apply; Terraform validates the environment/size combination.

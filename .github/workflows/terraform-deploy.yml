@@ -39,10 +39,7 @@ jobs:
   plan:
     name: Create sanitized plan summary
     if: >-
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
-      vars.AZURE_PLAN_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' &&
-      vars.AZURE_SUBSCRIPTION_ID != '' && vars.AZURE_KEY_VAULT_NAME != '' &&
-      vars.TF_STATE_RESOURCE_GROUP != '') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'workflow_dispatch' &&
       ((inputs.environment == 'development' && github.ref == 'refs/heads/development-20261015') ||
       ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main')))

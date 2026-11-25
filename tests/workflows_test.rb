@@ -33,7 +33,7 @@ class WorkflowsTest < Minitest::Test
     assert_match(/terraform-plan-/, plan.dig("environment", "name"))
   end
 
-  def test_pull_request_plan_requires_complete_azure_configuration
+  def test_plan_guard_does_not_require_environment_configuration
     plan = @deployment.dig("jobs", "plan")
 
     %w[
@@ -43,7 +43,7 @@ class WorkflowsTest < Minitest::Test
       AZURE_KEY_VAULT_NAME
       TF_STATE_RESOURCE_GROUP
     ].each do |variable|
-      assert_includes plan["if"], "vars.#{variable} != ''"
+      refute_includes plan["if"], "vars.#{variable}"
     end
     assert_includes plan["if"], "github.event_name == 'workflow_dispatch'"
   end
@@ -68,10 +68,7 @@ class WorkflowsTest < Minitest::Test
       ((inputs.environment == 'testing' || inputs.environment == 'production') && github.ref == 'refs/heads/main'))
     CONDITION
     pull_request_guard = <<~CONDITION.split.join(" ")
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
-      vars.AZURE_PLAN_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' &&
-      vars.AZURE_SUBSCRIPTION_ID != '' && vars.AZURE_KEY_VAULT_NAME != '' &&
-      vars.TF_STATE_RESOURCE_GROUP != '')
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     CONDITION
 
     assert_equal manual_guard, @deployment.dig("jobs", "apply", "if").split.join(" ")
