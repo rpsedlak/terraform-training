@@ -1,6 +1,6 @@
 # terraform-training
 
-Learn how to build Terraform pipelines through a file-first, spec-driven workflow.
+Learn how to build Terraform pipelines through a file-first, spec-driven workflow. This REPO is used for testing out GitHub Actions concepts as well.
 
 ## Workflow
 
